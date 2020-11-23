@@ -7,7 +7,7 @@ asset token {
   addr     : address;     /* FA 1.2 contract address */
   poolvalue: nat = 0;     /* XTZ value in pool       */
   totalqty : nat = 0;     /* total number of tokens  */
-  totalltq : nat = 0;     /* total LTQ tokens        */
+  totallqt : nat = 0;     /* total LTQ tokens        */
 }
 
 asset liquidity identified by tokenid owner {
@@ -65,7 +65,7 @@ entry addLiquidity(dst : string, dstqty : nat) {
    end;
   /* mint LTQ tokens */
   var xtzin : nat = transferred;
-  var mintedLTQ = token[dst].totalltq * xtzin / token[dst].poolvalue;
+  var mintedLTQ = token[dst].totallqt * xtzin / token[dst].poolvalue;
   liquidity.addupdate((dst, caller), { ltq += mintedLTQ });
 }
 
@@ -79,7 +79,7 @@ entry removeLiquidity(lqtqty : nat, dst : string) {
     r0 otherwise "NOT ENOUGHT LQT": lqtqty <= liquidity[(dst, caller)].ltq
   }
   effect {
-    var lqtratio = lqtqty / token[dst].totalltq;
+    var lqtratio = lqtqty / token[dst].totallqt;
     transfer (lqtratio * token[dst].poolvalue * 1tz) to caller;
     match_option entrypoint<(address * address * nat)>("%transfer",token[dst].addr) with
     | some(transfer_src) ->
