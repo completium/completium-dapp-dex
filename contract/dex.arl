@@ -1,0 +1,92 @@
+archetype dex
+
+constant fee : rational = 0.003
+
+asset token {
+  id       : string;      /* token label identifier  */
+  addr     : address;     /* FA 1.2 contract address */
+  poolvalue: nat = 0;     /* XTZ value in pool       */
+  totalqty : nat = 0;     /* total number of tokens  */
+  totalltq : nat = 0;     /* total LTQ tokens        */
+}
+
+asset liquidity identified by tokenid owner {
+  tokenid  : string;      /* token id                */
+  owner    : address;     /* LQT owner               */
+  ltq      : nat = 0;     /* LQT quantity            */
+}
+
+/* 'caller' sells 'srcqty' of 'src' token
+   and acquires 'dstqty' of 'dst' token
+   this generates 2 transfers :
+  - from caller to token pool of 'srcqty' tokens
+  - from token pool to caller of 'dstqty' tokens
+  This assumes that caller has emitted an 'allow' transaction prior to this on src token contract.
+*/
+entry exchange(src : string, srcqty: nat, dst : string, dstqty : nat) {
+  /* TODO : handle special case when src = "XTZ" or dst = "XTZ" */
+  /* Check value of 'dstqty' according to pools values   */
+  var K = token[src].totalqty * token[dst].totalqty;
+  var expecteddstqty = 1 / (1 - fee) * K / (token[src].totalqty - srcqty);
+  if (abs(expecteddstqty - dstqty) > 1) then
+    fail(("INVALID DST QTY",expecteddstqty));
+  token.update(src, { totalqty -= srcqty }); /* Check that srcqty <= totalqty ? */
+  token.update(dst, { totalqty += dstqty });
+  /* TODO : should reject when src = dst                        */
+  match_option entrypoint<(address * address * nat)>("%transfer",token[src].addr) with
+  | some(transfer_src) ->
+    transfer 0tz to entry transfer_src((caller, selfaddress, srcqty))
+  | none -> fail("INVALID SRC ENTRY")
+  end;
+  match_option entrypoint<(address * address * nat)>("%transfer",token[dst].addr) with
+  | some(transfer_dst) ->
+    transfer 0tz to entry transfer_dst((selfaddress, caller, dstqty))
+  | none -> fail("INVALID DST ENTRY")
+  end;
+}
+
+/*
+  'caller' sends XTZ and 'destqty' of 'dst' tokens so that
+  the value of transferred (just approved so far) dst tokens is equal
+  to the value of transferred XTZ.
+
+  LQT tokens are minted so that it reflects the proportion of the transferred
+  value towards the pool.
+
+  Let 'mintedltq' be the number of minted LTQ tokens.
+  mintedLTQ / token[dst].totalltq = transferred XTZ / token[dts].pool <=>
+  mintedLTQ = token[dst].totalltq * transferred XTZ / token[dts].pool
+*/
+entry addLiquidity(dst : string, dstqty : nat) {
+  match_option entrypoint<(address * address * nat)>("%transfer",token[dst].addr) with
+   | some(transfer_src) ->
+     transfer 0tz to entry transfer_src((caller, selfaddress, dstqty))
+   | none -> fail("INVALID DST ENTRY")
+   end;
+  /* mint LTQ tokens */
+  var xtzin : nat = transferred;
+  var mintedLTQ = token[dst].totalltq * xtzin / token[dst].poolvalue;
+  liquidity.addupdate((dst, caller), { ltq += mintedLTQ });
+}
+
+/*
+  'caller' redeems its LTQ tokens; 2 transactions are generated :
+  - transfer of XTZ in proportion of the token pool
+  - transfer of src tokens in proportion of the token pool
+*/
+entry removeLiquidity(lqtqty : nat, dst : string) {
+  require {
+    r0 otherwise "NOT ENOUGHT LQT": lqtqty <= liquidity[(dst, caller)].ltq
+  }
+  effect {
+    var lqtratio = lqtqty / token[dst].totalltq;
+    transfer (lqtratio * token[dst].poolvalue * 1tz) to caller;
+    match_option entrypoint<(address * address * nat)>("%transfer",token[dst].addr) with
+    | some(transfer_src) ->
+      var qty = abs(floor(lqtratio * token[dst].totalqty));
+      transfer 0tz to entry transfer_src((selfaddress, caller, qty))
+    | none -> fail("INVALID DST ENTRY")
+   end;
+  }
+
+}
