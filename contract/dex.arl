@@ -42,11 +42,14 @@ entry exchange(src : string, srcqty: nat, dst : string, dstqty : nat) {
   effect {
     var srctotalqty = if src = "XTZ" then token[dst].poolvalue else token[src].totalqty;
     var dsttotalqty = if dst = "XTZ" then token[src].poolvalue else token[dst].totalqty;
+
     var K = srctotalqty * dsttotalqty;
     var expecteddstqty = dsttotalqty - K / (srctotalqty + (1 - fee) * srcqty);
     if (abs(expecteddstqty - dstqty) > epsilon) then fail(("INVALID_DST_QTY",expecteddstqty));
+
     if src <> "XTZ" then token.update(src, { totalqty += srcqty });
     if dst <> "XTZ" then token.update(dst, { totalqty -= dstqty });
+
     if src = "XTZ"  then begin
       var xtzin : nat = transferred;
       if srcqty <> xtzin then fail(("INVALID_SRC_QTY",xtzin))
@@ -106,7 +109,7 @@ entry removeLiquidity(lqtqty : nat, dst : string) {
   }
   effect {
     var lqtratio = lqtqty / token[dst].totallqt;
-    transfer (lqtratio * token[dst].poolvalue * 1tz) to caller;
+    transfer (lqtratio * token[dst].poolvalue * 1utz) to caller;
     match_option entrypoint<(address * address * nat)>("%transfer",token[dst].addr) with
     | some(transfer_src) ->
       var qty = abs(floor(lqtratio * token[dst].totalqty));
