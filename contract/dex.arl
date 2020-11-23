@@ -51,10 +51,10 @@ entry exchange(src : string, srcqty: nat, dst : string, dstqty : nat) {
       else
         token[dst].totalqty;
     var K = srctotalqty * dsttotalqty;
-    var expecteddstqty = 1 / (1 - fee) * (dsttotalqty - K / (srctotalqty + srcqty));
+    var expecteddstqty = dsttotalqty - K / (srctotalqty + (1 - fee) * srcqty);
     if (abs(expecteddstqty - dstqty) > epsilon) then fail(("INVALID_DST_QTY",expecteddstqty));
-    token.update(src, { totalqty -= srcqty });
-    token.update(dst, { totalqty += dstqty });
+    token.update(src, { totalqty += srcqty });
+    token.update(dst, { totalqty -= dstqty });
     if src = "XTZ"  then begin
       var xtzin : nat = transferred;
       if srcqty <> xtzin then fail(("INVALID_SRC_QTY",xtzin))
