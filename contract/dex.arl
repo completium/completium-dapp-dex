@@ -40,16 +40,8 @@ entry exchange(src : string, srcqty: nat, dst : string, dstqty : nat) {
     r0 otherwise "SRC_EQ_DST" : src <> dst;
   }
   effect {
-    var srctotalqty =
-      if src = "XTZ" then
-        token[dst].poolvalue
-      else
-        token[src].totalqty;
-    var dsttotalqty =
-      if dst = "XTZ" then
-        token[src].poolvalue
-      else
-        token[dst].totalqty;
+    var srctotalqty = if src = "XTZ" then token[dst].poolvalue else token[src].totalqty;
+    var dsttotalqty = if dst = "XTZ" then token[src].poolvalue else token[dst].totalqty;
     var K = srctotalqty * dsttotalqty;
     var expecteddstqty = dsttotalqty - K / (srctotalqty + (1 - fee) * srcqty);
     if (abs(expecteddstqty - dstqty) > epsilon) then fail(("INVALID_DST_QTY",expecteddstqty));
