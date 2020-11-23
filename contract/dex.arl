@@ -25,31 +25,33 @@ asset liquidity identified by tokenid owner {
   This assumes that caller has emitted an 'allow' transaction prior to this on src token contract.
 */
 entry exchange(src : string, srcqty: nat, dst : string, dstqty : nat) {
-  /* TODO : handle special case when src = "XTZ" or dst = "XTZ" */
-  /* Check value of 'dstqty' according to pools values   */
-  var K = token[src].totalqty * token[dst].totalqty;
-  var expecteddstqty = 1 / (1 - fee) * K / (token[src].totalqty - srcqty);
-  if (abs(expecteddstqty - dstqty) > epsilon) then fail(("INVALID DST QTY",expecteddstqty));
-  token.update(src, { totalqty -= srcqty }); /* Check that srcqty <= totalqty ? */
-  token.update(dst, { totalqty += dstqty });
-  /* TODO : should reject when src = dst                        */
-  if src = "XTZ"  then begin
-    var xtzin : nat = transferred;
-    if srcqty <> xtzin then fail(("INVALID SRC QTY",xtzin))
-  end else
-    match_option entrypoint<(address * address * nat)>("%transfer",token[src].addr) with
-    | some(transfer_src) ->
-      transfer 0tz to entry transfer_src((caller, selfaddress, srcqty))
-    | none -> fail("INVALID SRC ENTRY")
-    end;
-  if dst = "XTZ" then
-    transfer (dstqty * 1tz) to caller
-  else
-    match_option entrypoint<(address * address * nat)>("%transfer",token[dst].addr) with
-    | some(transfer_dst) ->
-      transfer 0tz to entry transfer_dst((selfaddress, caller, dstqty))
-    | none -> fail("INVALID DST ENTRY")
-    end;
+  require {
+    r0 otherwise "SRC_EQ_DST" : src <> dst;
+  }
+  effect {
+    var K = token[src].totalqty * token[dst].totalqty;
+    var expecteddstqty = 1 / (1 - fee) * K / (token[src].totalqty - srcqty);
+    if (abs(expecteddstqty - dstqty) > epsilon) then fail(("INVALID_DST_QTY",expecteddstqty));
+    token.update(src, { totalqty -= srcqty });
+    token.update(dst, { totalqty += dstqty });
+    if src = "XTZ"  then begin
+      var xtzin : nat = transferred;
+      if srcqty <> xtzin then fail(("INVALID_SRC_QTY",xtzin))
+    end else
+      match_option entrypoint<(address * address * nat)>("%transfer",token[src].addr) with
+      | some(transfer_src) ->
+        transfer 0tz to entry transfer_src((caller, selfaddress, srcqty))
+      | none -> fail("INVALID_SRC_ENTRY")
+      end;
+    if dst = "XTZ" then
+      transfer (dstqty * 1tz) to caller
+    else
+      match_option entrypoint<(address * address * nat)>("%transfer",token[dst].addr) with
+      | some(transfer_dst) ->
+        transfer 0tz to entry transfer_dst((selfaddress, caller, dstqty))
+      | none -> fail("INVALID_DST_ENTRY")
+      end;
+  }
 }
 
 /*
@@ -69,7 +71,7 @@ entry addLiquidity(dst : string, dstqty : nat) {
   match_option entrypoint<(address * address * nat)>("%transfer",token[dst].addr) with
    | some(transfer_src) ->
      transfer 0tz to entry transfer_src((caller, selfaddress, dstqty))
-   | none -> fail("INVALID DST ENTRY")
+   | none -> fail("INVALID_DST_ENTRY")
    end;
   /* mint LTQ tokens */
   var xtzin : nat = transferred;
@@ -84,7 +86,7 @@ entry addLiquidity(dst : string, dstqty : nat) {
 */
 entry removeLiquidity(lqtqty : nat, dst : string) {
   require {
-    r0 otherwise "NOT ENOUGHT LQT": lqtqty <= liquidity[(dst, caller)].lqt
+    r1 otherwise "NOT_ENOUGHT_LQT": lqtqty <= liquidity[(dst, caller)].lqt
   }
   effect {
     var lqtratio = lqtqty / token[dst].totallqt;
@@ -93,7 +95,7 @@ entry removeLiquidity(lqtqty : nat, dst : string) {
     | some(transfer_src) ->
       var qty = abs(floor(lqtratio * token[dst].totalqty));
       transfer 0tz to entry transfer_src((selfaddress, caller, qty))
-    | none -> fail("INVALID DST ENTRY")
+    | none -> fail("INVALID_DST_ENTRY")
    end;
   }
 
