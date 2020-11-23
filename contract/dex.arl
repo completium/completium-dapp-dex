@@ -2,7 +2,7 @@ archetype dex
 
 constant fee           : rational = 0.003
 constant epsilon       : nat = 1
-constant initialminted : nat = 1000000
+constant initialminted : nat = 1_000_000
 
 variable admin : address = @tz1Lc2qBKEWCBeDU8npG6zCeCqpmaegRi6Jg
 
@@ -51,7 +51,7 @@ entry exchange(src : string, srcqty: nat, dst : string, dstqty : nat) {
       else
         token[dst].totalqty;
     var K = srctotalqty * dsttotalqty;
-    var expecteddstqty = 1 / (1 - fee) * K / (srctotalqty - srcqty);
+    var expecteddstqty = 1 / (1 - fee) * (dsttotalqty - K / (srctotalqty + srcqty));
     if (abs(expecteddstqty - dstqty) > epsilon) then fail(("INVALID_DST_QTY",expecteddstqty));
     token.update(src, { totalqty -= srcqty });
     token.update(dst, { totalqty += dstqty });
