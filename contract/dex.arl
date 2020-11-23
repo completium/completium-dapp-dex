@@ -1,6 +1,7 @@
 archetype dex
 
 constant fee : rational = 0.003
+constant epsilon : nat = 1
 
 asset token {
   id       : string;      /* token label identifier  */
@@ -28,21 +29,27 @@ entry exchange(src : string, srcqty: nat, dst : string, dstqty : nat) {
   /* Check value of 'dstqty' according to pools values   */
   var K = token[src].totalqty * token[dst].totalqty;
   var expecteddstqty = 1 / (1 - fee) * K / (token[src].totalqty - srcqty);
-  if (abs(expecteddstqty - dstqty) > 1) then
-    fail(("INVALID DST QTY",expecteddstqty));
+  if (abs(expecteddstqty - dstqty) > epsilon) then fail(("INVALID DST QTY",expecteddstqty));
   token.update(src, { totalqty -= srcqty }); /* Check that srcqty <= totalqty ? */
   token.update(dst, { totalqty += dstqty });
   /* TODO : should reject when src = dst                        */
-  match_option entrypoint<(address * address * nat)>("%transfer",token[src].addr) with
-  | some(transfer_src) ->
-    transfer 0tz to entry transfer_src((caller, selfaddress, srcqty))
-  | none -> fail("INVALID SRC ENTRY")
-  end;
-  match_option entrypoint<(address * address * nat)>("%transfer",token[dst].addr) with
-  | some(transfer_dst) ->
-    transfer 0tz to entry transfer_dst((selfaddress, caller, dstqty))
-  | none -> fail("INVALID DST ENTRY")
-  end;
+  if src = "XTZ"  then begin
+    var xtzin : nat = transferred;
+    if srcqty <> xtzin then fail(("INVALID SRC QTY",xtzin))
+  end else
+    match_option entrypoint<(address * address * nat)>("%transfer",token[src].addr) with
+    | some(transfer_src) ->
+      transfer 0tz to entry transfer_src((caller, selfaddress, srcqty))
+    | none -> fail("INVALID SRC ENTRY")
+    end;
+  if dst = "XTZ" then
+    transfer (dstqty * 1tz) to caller
+  else
+    match_option entrypoint<(address * address * nat)>("%transfer",token[dst].addr) with
+    | some(transfer_dst) ->
+      transfer 0tz to entry transfer_dst((selfaddress, caller, dstqty))
+    | none -> fail("INVALID DST ENTRY")
+    end;
 }
 
 /*
