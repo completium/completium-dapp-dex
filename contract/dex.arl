@@ -3,6 +3,8 @@ archetype dex
 constant fee : rational = 0.003
 constant epsilon : nat = 1
 
+variable admin : address = @tz1
+
 asset token {
   id       : string;      /* token label identifier  */
   addr     : address;     /* FA 1.2 contract address */
@@ -15,6 +17,11 @@ asset liquidity identified by tokenid owner {
   tokenid  : string;      /* token id                */
   owner    : address;     /* LQT owner               */
   lqt      : nat = 0;     /* LQT quantity            */
+}
+
+entry registertoken (i : string, a : address) {
+  called by admin
+  effect { token.add({ id = i; addr = a }); }
 }
 
 /* 'caller' sells 'srcqty' of 'src' token
