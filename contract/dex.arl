@@ -1,7 +1,8 @@
 archetype dex
 
-constant fee : rational = 0.003
-constant epsilon : nat = 1
+constant fee           : rational = 0.003
+constant epsilon       : nat = 1
+constant initialminted : nat = 1000000
 
 variable admin : address = @tz1Lc2qBKEWCBeDU8npG6zCeCqpmaegRi6Jg
 
@@ -82,8 +83,12 @@ entry addLiquidity(dst : string, dstqty : nat) {
    end;
   /* mint LTQ tokens */
   var xtzin : nat = transferred;
-  var mintedLTQ = token[dst].totallqt * xtzin / token[dst].poolvalue;
-  liquidity.addupdate((dst, caller), { lqt += abs(floor(mintedLTQ)) });
+  if token[dst].poolvalue = 0 then begin
+    liquidity.addupdate((dst, caller), { lqt = initialminted });
+  end else begin
+    var mintedLTQ = token[dst].totallqt * xtzin / token[dst].poolvalue;
+    liquidity.addupdate((dst, caller), { lqt += abs(floor(mintedLTQ)) });
+  end
 }
 
 /*
