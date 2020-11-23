@@ -49,7 +49,7 @@ entry exchange(src : string, srcqty: nat, dst : string, dstqty : nat) {
       if dst = "XTZ" then
         token[src].poolvalue
       else
-        token[src].totalqty;
+        token[dst].totalqty;
     var K = srctotalqty * dsttotalqty;
     var expecteddstqty = 1 / (1 - fee) * K / (srctotalqty - srcqty);
     if (abs(expecteddstqty - dstqty) > epsilon) then fail(("INVALID_DST_QTY",expecteddstqty));
