@@ -58,6 +58,7 @@ entry exchange(src : string, srcqty: nat, dst : string, dstqty : nat) {
   mintedLTQ = token[dst].totalltq * transferred XTZ / token[dts].pool
 */
 entry addLiquidity(dst : string, dstqty : nat) {
+  /* TODO : check transferred value */
   match_option entrypoint<(address * address * nat)>("%transfer",token[dst].addr) with
    | some(transfer_src) ->
      transfer 0tz to entry transfer_src((caller, selfaddress, dstqty))
