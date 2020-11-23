@@ -12,6 +12,9 @@ asset token {
   poolvalue: nat = 0;     /* XTZ value in pool       */
   totalqty : nat = 0;     /* total number of tokens  */
   totallqt : nat = 0;     /* total LTQ tokens        */
+} initialized by {
+  {"A"; @KT1MePDQK3VQooqSEwN3sN1WqyMiiGBKGkNX; 0; 0; 0};
+  {"B"; @KT1H8JUiFbvEMycCuG5sZfCGHkN7vgfLAs3n; 0; 0; 0}
 }
 
 asset liquidity identified by tokenid owner {
@@ -37,8 +40,18 @@ entry exchange(src : string, srcqty: nat, dst : string, dstqty : nat) {
     r0 otherwise "SRC_EQ_DST" : src <> dst;
   }
   effect {
-    var K = token[src].totalqty * token[dst].totalqty;
-    var expecteddstqty = 1 / (1 - fee) * K / (token[src].totalqty - srcqty);
+    var srctotalqty =
+      if src = "XTZ" then
+        token[dst].poolvalue
+      else
+        token[src].totalqty;
+    var dsttotalqty =
+      if dst = "XTZ" then
+        token[src].poolvalue
+      else
+        token[src].totalqty;
+    var K = srctotalqty * dsttotalqty;
+    var expecteddstqty = 1 / (1 - fee) * K / (srctotalqty - srcqty);
     if (abs(expecteddstqty - dstqty) > epsilon) then fail(("INVALID_DST_QTY",expecteddstqty));
     token.update(src, { totalqty -= srcqty });
     token.update(dst, { totalqty += dstqty });
@@ -80,7 +93,7 @@ entry addLiquidity(dst : string, dstqty : nat) {
    | some(transfer_src) ->
      transfer 0tz to entry transfer_src((caller, selfaddress, dstqty))
    | none -> fail("INVALID_DST_ENTRY")
-   end;
+  end;
   /* mint LTQ tokens */
   var xtzin : nat = transferred;
   var mintedLTQ =
