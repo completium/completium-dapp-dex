@@ -83,12 +83,11 @@ entry addLiquidity(dst : string, dstqty : nat) {
    end;
   /* mint LTQ tokens */
   var xtzin : nat = transferred;
-  if token[dst].poolvalue = 0 then begin
-    liquidity.addupdate((dst, caller), { lqt = initialminted });
-  end else begin
-    var mintedLTQ = token[dst].totallqt * xtzin / token[dst].poolvalue;
-    liquidity.addupdate((dst, caller), { lqt += abs(floor(mintedLTQ)) });
-  end
+  var mintedLTQ =
+    if token[dst].poolvalue = 0 then initialminted
+    else abs(floor(token[dst].totallqt * xtzin / token[dst].poolvalue));
+  liquidity.addupdate((dst, caller), { lqt += mintedLTQ });
+  token.update(dst, { poolvalue += xtzin; totalqty += dstqty; totallqt += mintedLTQ })
 }
 
 /*
