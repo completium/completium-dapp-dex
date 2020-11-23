@@ -13,7 +13,7 @@ asset token {
 asset liquidity identified by tokenid owner {
   tokenid  : string;      /* token id                */
   owner    : address;     /* LQT owner               */
-  ltq      : nat = 0;     /* LQT quantity            */
+  lqt      : nat = 0;     /* LQT quantity            */
 }
 
 /* 'caller' sells 'srcqty' of 'src' token
@@ -66,7 +66,7 @@ entry addLiquidity(dst : string, dstqty : nat) {
   /* mint LTQ tokens */
   var xtzin : nat = transferred;
   var mintedLTQ = token[dst].totallqt * xtzin / token[dst].poolvalue;
-  liquidity.addupdate((dst, caller), { ltq += mintedLTQ });
+  liquidity.addupdate((dst, caller), { lqt += mintedLTQ });
 }
 
 /*
@@ -76,7 +76,7 @@ entry addLiquidity(dst : string, dstqty : nat) {
 */
 entry removeLiquidity(lqtqty : nat, dst : string) {
   require {
-    r0 otherwise "NOT ENOUGHT LQT": lqtqty <= liquidity[(dst, caller)].ltq
+    r0 otherwise "NOT ENOUGHT LQT": lqtqty <= liquidity[(dst, caller)].lqt
   }
   effect {
     var lqtratio = lqtqty / token[dst].totallqt;
