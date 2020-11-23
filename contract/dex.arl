@@ -3,7 +3,7 @@ archetype dex
 constant fee : rational = 0.003
 constant epsilon : nat = 1
 
-variable admin : address = @tz1
+variable admin : address = @tz1Lc2qBKEWCBeDU8npG6zCeCqpmaegRi6Jg
 
 asset token {
   id       : string;      /* token label identifier  */
@@ -83,7 +83,7 @@ entry addLiquidity(dst : string, dstqty : nat) {
   /* mint LTQ tokens */
   var xtzin : nat = transferred;
   var mintedLTQ = token[dst].totallqt * xtzin / token[dst].poolvalue;
-  liquidity.addupdate((dst, caller), { lqt += mintedLTQ });
+  liquidity.addupdate((dst, caller), { lqt += abs(floor(mintedLTQ)) });
 }
 
 /*
