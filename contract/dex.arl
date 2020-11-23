@@ -65,7 +65,7 @@ entry exchange(src : string, srcqty: nat, dst : string, dstqty : nat) {
       | none -> fail("INVALID_SRC_ENTRY")
       end;
     if dst = "XTZ" then
-      transfer (dstqty * 1tz) to caller
+      transfer (dstqty * 1utz) to caller
     else
       match_option entrypoint<(address * address * nat)>("%transfer",token[dst].addr) with
       | some(transfer_dst) ->
