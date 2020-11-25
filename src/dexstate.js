@@ -43,8 +43,8 @@ export function useDexState() {
   }
   const computeAmounts = (state) => {
     if (state.left.coin !== '' && state.left.amount !== '' && state.right.coin !== '') {
-      const srctotalqty = (dexState.left.coin === "XTZ")?(parseInt(dexState.token[state.right.coin].poolvalue) * 1000000) : (parseInt(dexState.token[state.left.coin].totalqty));
-      const dsttotalqty = (dexState.right.coin === "XTZ")?(parseInt(dexState.token[state.left.coin].poolvalue) * 1000000) : (parseInt(dexState.token[state.right.coin].totalqty));
+      const srctotalqty = (state.left.coin === "XTZ")?(parseInt(dexState.token[state.right.coin].poolvalue) * 1000000) : (parseInt(dexState.token[state.left.coin].totalqty));
+      const dsttotalqty = (state.right.coin === "XTZ")?(parseInt(dexState.token[state.left.coin].poolvalue) * 1000000) : (parseInt(dexState.token[state.right.coin].totalqty));
 
       var K = srctotalqty * dsttotalqty;
       var leftamount = (dexState.left.coin === "XTZ") ? parseInt(state.left.amount) * 1000000 : parseInt(state.left.amount);

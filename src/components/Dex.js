@@ -189,12 +189,12 @@ const RightEx = (props) => {
         </FormControl>
       </Grid>
       <Grid item xs={12} style={{ paddingBottom: '6px', paddingTop: '24px'}}>
-      <Typography color='textSecondary' style={{ paddingLeft: '0' }}>Fee: {dexState.right.fee} {coin}</Typography>
+      <Typography color='textSecondary' style={{ paddingLeft: '0' }}>Fee: {(coin === 'XTZ')?parseInt(dexState.right.fee)/1000000:dexState.right.fee} {coin}</Typography>
       </Grid>
       <Grid item xs={12} style={{ paddingTop: 0, paddingLeft: 0, paddingRight: '34px' }}>
         <TextField InputProps={{
             readOnly: true,
-          }} value={dexState.right.amount} type="number" color='secondary' className={classes.formControl} id="outlined-basic" label="Received amount" variant="outlined" />
+          }} value={(coin === 'XTZ')?parseInt(dexState.right.amount)/1000000:dexState.right.amount} type="number" color='secondary' className={classes.formControl} id="outlined-basic" label="Received amount" variant="outlined" />
       </Grid>
     </Grid>
   )
