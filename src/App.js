@@ -9,7 +9,9 @@ import useMediaQuery from '@material-ui/core/useMediaQuery';
 import CssBaseline from '@material-ui/core/CssBaseline';
 import Container from '@material-ui/core/Container';
 import SnackMsg from './components/SnackMsg';
-import { Typography } from '@material-ui/core';
+import Tabs from '@material-ui/core/Tabs';
+import Tab from '@material-ui/core/Tab';
+import Exchange from './components/Dex';
 
 function App() {
   return (
@@ -25,8 +27,13 @@ function App() {
 
 const PageRouter = () => {
   const [viewSnack, setViewSnack] = useState(false);
+  const [value, setValue] = React.useState(0);
+
+  const handleChange = (event, newValue) => {
+    setValue(newValue);
+  };
   var connect = useConnect();
-  const prefersDarkMode = useMediaQuery('(prefers-color-scheme: dark)');
+  const prefersDarkMode = false; /* useMediaQuery('(prefers-color-scheme: dark)'); */
   const handleConnect = React.useCallback(async () => {
     try {
       await connect(network);
@@ -40,9 +47,9 @@ const PageRouter = () => {
         palette: {
           type: prefersDarkMode ? 'dark' : 'light',
           secondary: {
-            light: '#26457c',
-            main: '#162b52',
-            dark: '#14233f',
+            light: prefersDarkMode ? '#4b85f2' :'#26457c',
+            main: prefersDarkMode ? '#4681f0' : '#162b52',
+            dark: prefersDarkMode ? '#3361b8' :'#14233f',
             contrastText: '#fff',
           }
         },
@@ -60,7 +67,19 @@ const PageRouter = () => {
       <CssBaseline/>
       <HeaderBar appTitle={appTitle} handleConnect={handleConnect} theme={theme} />
       <Container>
-        <Typography>This is a DEX</Typography>
+        <Tabs
+          value={value}
+          indicatorColor="secondary"
+          textColor={ prefersDarkMode ? "default" : "secondary"}
+          onChange={handleChange}
+          aria-label="disabled tabs example"
+          style={{ marginTop: '10px' }}
+        >
+          <Tab label="Exchange" />
+          <Tab label="Liquidity" disabled/>
+          <Tab label="History" disabled />
+        </Tabs>
+        <Exchange />
       </Container>
       <SnackMsg open={viewSnack} theme={theme} />
     </ThemeProvider>
