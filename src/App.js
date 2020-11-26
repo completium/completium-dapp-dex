@@ -12,6 +12,7 @@ import SnackMsg from './components/SnackMsg';
 import Tabs from '@material-ui/core/Tabs';
 import Tab from '@material-ui/core/Tab';
 import Exchange from './components/Dex';
+import Liquidity from './components/Provider';
 
 function App() {
   return (
@@ -76,10 +77,11 @@ const PageRouter = () => {
           style={{ marginTop: '10px' }}
         >
           <Tab label="Exchange" />
-          <Tab label="Liquidity" disabled/>
+          <Tab label="Provide Liquidity"/>
+          <Tab label="Redeem Liquidity" disabled/>
           <Tab label="History" disabled />
         </Tabs>
-        <Exchange />
+        { (value === 0)?<Exchange />:<Liquidity /> }
       </Container>
       <SnackMsg open={viewSnack} theme={theme} />
     </ThemeProvider>

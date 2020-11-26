@@ -1,81 +1,19 @@
-import { useState } from 'react';
-import { useTheme } from '@material-ui/core/styles';
 import Paper from '@material-ui/core/Paper';
 import Typography from '@material-ui/core/Typography';
 import Button from '@material-ui/core/Button';
 import Grid from '@material-ui/core/Grid';
 import Divider from '@material-ui/core/Divider';
-import ArrowRightAltIcon from '@material-ui/icons/ArrowRightAlt';
 import InputLabel from '@material-ui/core/InputLabel';
 import MenuItem from '@material-ui/core/MenuItem';
-import FormHelperText from '@material-ui/core/FormHelperText';
 import FormControl from '@material-ui/core/FormControl';
 import Select from '@material-ui/core/Select';
 import { makeStyles } from '@material-ui/core/styles';
-import { cities } from '../settings';
+import { cities, getCoinLabel, getBalanceFor } from '../settings';
 import { useDexStateContext } from '../dexstate';
 import TextField from '@material-ui/core/TextField';
 import Switch from '@material-ui/core/Switch';
-
-const getCoinLabel = (city) => {
-  switch(city) {
-    case 'tezos'   : return 'XTZ';
-    case 'paris'   : return 'XPA';
-    case 'london'  : return 'XLD';
-    case 'moscow'  : return 'XMO';
-    case 'nyc'     : return 'XNY';
-    case 'tokyo'   : return 'XTK';
-    case 'sydney'  : return 'XSD';
-    case 'athenes' : return 'XAT';
-    case 'rio'     : return 'XRI';
-    case 'rome'    : return 'XRO';
-    default : return '';
-  }
-}
-
-const getCityName = (city) => {
-  switch(city) {
-    case 'tezos'   : return 'Tezos';
-    case 'paris'   : return 'Paris';
-    case 'london'  : return 'London';
-    case 'moscow'  : return 'Moscow';
-    case 'nyc'     : return 'New York City';
-    case 'tokyo'   : return 'Tokyo';
-    case 'sydney'  : return 'Sydney';
-    case 'athenes' : return 'Athens';
-    case 'rio'     : return 'Rio de Janeiro';
-    case 'rome'    : return 'Rome';
-    default : return '';
-  }
-}
-
-const CoinItem = (props) => {
-  const { getXTZFor } = useDexStateContext();
-  const theme = useTheme();
-  const svg = props.name + '_' + ((theme.palette.type === 'dark')?'white':'black') + '.svg';
-  return (
-    <Grid container direction='row' justify="flex-start" alignItems="center" spacing={0}>
-      <Grid item xs={1}>
-      <img src={process.env.PUBLIC_URL + "/icons/" + svg} style={{ height: '35px', width: '35px' }}></img>
-      </Grid>
-      <Grid item xs={2} style={{ paddingLeft: '12px' }}>
-        <Typography style={{ textTransform: 'uppercase' }}>{getCoinLabel(props.name)}</Typography>
-      </Grid>
-      <Grid item xs={3}>
-        <Typography color='textSecondary'>{getCityName(props.name)}</Typography>
-      </Grid>
-      { (props.name !== 'tezos')? (
-        <Grid item xs={6} style={{ textAlign: 'right' }}>
-          <Typography color='textSecondary'>({
-            new Intl.NumberFormat('en-IN',{maximumFractionDigits : 6}).format(getXTZFor(getCoinLabel(props.name),1)) + ' XTZ'
-          })</Typography>
-        </Grid>
-      ) : (
-        <Grid item></Grid>
-      ) }
-    </Grid>
-  );
-}
+import CoinItem from './CoinItem';
+import VerticialDivider from './VerticalDivider';
 
 const useStyles = makeStyles((theme) => ({
   formControl: {
@@ -87,20 +25,20 @@ const useStyles = makeStyles((theme) => ({
   },
 }));
 
-
 const LeftEx = (props) => {
-  const { dexState, getBalanceFor, setLeftCoin, setLeftAmount, switchMax } = useDexStateContext();
+  const { dexState, setLeftCoin, setLeftAmount, switchMax } = useDexStateContext();
   const classes = useStyles();
+  const coin = dexState.left.coin;
+  const balance = getBalanceFor(coin);
   const handleChange = (event) => {
     setLeftCoin(event.target.value);
   };
   const handleCheckChange = (event) => {
-    switchMax();
+    switchMax(balance);
   }
   const handleAmountChange = (event) => {
     setLeftAmount(event.target.value);
   }
-  const coin = dexState.left.coin;
   return (
     <Grid container direction='row' spacing={4} style={{ paddingLeft: '24px' }}>
       <Grid item xs={12}>
@@ -121,8 +59,8 @@ const LeftEx = (props) => {
             <MenuItem value="">
               <em>None</em>
             </MenuItem>
-            { cities.filter(city => getCoinLabel(city) !== dexState.right.coin && dexState.balance[getCoinLabel(city)] !== '0').map(city =>
-              <MenuItem value={getCoinLabel(city)}><CoinItem name={city} /></MenuItem>
+            { cities.filter(city => getCoinLabel(city) !== dexState.right.coin && balance !== '0').map(city =>
+              <MenuItem value={getCoinLabel(city)}><CoinItem name={city} show={true}/></MenuItem>
             )}
           </Select>
         </FormControl>
@@ -130,7 +68,7 @@ const LeftEx = (props) => {
       <Grid item xs={12} style={{ paddingBottom: 0 }}>
         <Grid container direction='row' alignItems="center">
           <Grid item xs={10}>
-            <Typography color='textSecondary' style={{ paddingLeft: '12px' }}>Balance: {getBalanceFor(coin)} {coin}</Typography>
+            <Typography color='textSecondary' style={{ paddingLeft: '12px' }}>Balance: {balance} {coin}</Typography>
           </Grid>
           <Grid item xs={1}>
             <Typography>Max</Typography>
@@ -141,7 +79,7 @@ const LeftEx = (props) => {
               onChange={handleCheckChange}
               color="secondary"
               name="max"
-              disabled={ dexState.balance[coin] === '0' }
+              disabled={ balance === '0' }
             />
           </Grid>
         </Grid>
@@ -149,7 +87,16 @@ const LeftEx = (props) => {
       <Grid item xs={12} style={{ paddingTop: 0 }}>
         <TextField InputProps={{
             readOnly: dexState.left.max,
-          }} onChange={handleAmountChange} value={dexState.left.amount} disabled={ dexState.balance[coin] === '0' } type="number" color='secondary' className={classes.formControl} id="outlined-basic" label="Amount" variant="outlined" />
+          }}
+          onChange={handleAmountChange}
+          value={dexState.left.amount}
+          disabled={ balance === '0' } type="number" color='secondary' className={classes.formControl}
+          id="outlined-basic"
+          label="Amount"
+          variant="outlined"
+          error={parseInt(dexState.left.amount) > parseInt(balance)}
+          helperText={parseInt(dexState.left.amount) > parseInt(balance)?'Cannot spend more than balance':''}
+        />
       </Grid>
     </Grid>
   )
@@ -162,12 +109,14 @@ const RightEx = (props) => {
     setRightCoin(event.target.value);
   };
   const coin = dexState.right.coin;
+  const sent = (coin === 'XTZ')?parseInt(dexState.right.amount)/1000000:dexState.right.amount;
+  const exbalance = (coin === 'XTZ')?dexState.token[dexState.left.coin].poolvalue:(coin==='')?'0':dexState.token[coin].totalqty;
   return (
     <Grid container direction='row' spacing={4} style={{ paddingRight: '24px' }}>
       <Grid item xs={12}>
         <Typography style={{ fontWeight: 'bold', paddingTop: '24px' }} >To</Typography>
       </Grid>
-      <Grid item xs={12} style={{ paddingLeft: 0, paddingRight: '34px' }}>
+      <Grid item xs={12} style={{ paddingLeft: 0, paddingRight: '34px', paddingBottom: 0 }}>
         <FormControl variant="outlined" className={classes.formControl} style={{ paddingLeft: 0 }}>
           <InputLabel color='secondary' id="demo-simple-select-outlined-label">Crypto asset</InputLabel>
           <Select
@@ -183,47 +132,30 @@ const RightEx = (props) => {
               <em>None</em>
             </MenuItem>
             { cities.filter(city => getCoinLabel(city) !== dexState.left.coin).map(city =>
-              <MenuItem value={getCoinLabel(city)}><CoinItem name={city} /></MenuItem>
+              <MenuItem value={getCoinLabel(city)}><CoinItem name={city} show={true}/></MenuItem>
             )}
           </Select>
         </FormControl>
       </Grid>
-      <Grid item xs={12} style={{ paddingBottom: '6px', paddingTop: '24px'}}>
+      <Grid item xs={12} style={{ paddingTop: 0 }}>
+        <Typography color='textSecondary'>Exchange balance: {exbalance} {coin}</Typography>
+      </Grid>
+      <Grid item xs={12} style={{ paddingBottom: '6px', paddingTop: '0px'}}>
       <Typography color='textSecondary' style={{ paddingLeft: '0' }}>Fee: {(coin === 'XTZ')?parseInt(dexState.right.fee)/1000000:dexState.right.fee} {coin}</Typography>
       </Grid>
       <Grid item xs={12} style={{ paddingTop: 0, paddingLeft: 0, paddingRight: '34px' }}>
         <TextField InputProps={{
             readOnly: true,
-          }} value={(coin === 'XTZ')?parseInt(dexState.right.amount)/1000000:dexState.right.amount} type="number" color='secondary' className={classes.formControl} id="outlined-basic" label="Received amount" variant="outlined" />
-      </Grid>
-    </Grid>
-  )
-}
-
-const VerticialDivider = (props) => {
-  const theme = useTheme();
-  return (
-    <Grid container direction='column' justify="center" alignItems="center" style={{ height: '350px' }}>
-      <Grid item xs={5}>
-        <Divider orientation="vertical" flexItem style={{ height: '100%' }}></Divider>
-      </Grid>
-      <Grid item>
-        <div color='disabled' style= {{
-          borderStyle: 'solid',
-          borderWidth: '1px',
-          borderRadius: '90px',
-          height: '31px',
-          width: '31px',
-          borderColor : theme.palette.divider,
-        }}>
-          <ArrowRightAltIcon style={{
-            position : 'relative',
-            top : '3px'
-          }} color="secondary"/>
-        </div>
-      </Grid>
-      <Grid item xs={5}>
-        <Divider orientation="vertical" flexItem style={{ height: '100%' }} ></Divider>
+          }}
+          value={sent}
+          type="number"
+          color='secondary'
+          className={classes.formControl}
+          id="outlined-basic"
+          label="Received amount"
+          variant="outlined"
+          error={parseInt(sent) > parseInt(exbalance)/2}
+          helperText={parseInt(sent) > parseInt(exbalance)/2?'Cannot exceed 50% of exchange balance':''} />
       </Grid>
     </Grid>
   )
@@ -231,6 +163,22 @@ const VerticialDivider = (props) => {
 
 const Exchange = (props) => {
   const { dexState } = useDexStateContext();
+  const cannotExchange = () => {
+    const lcoin = dexState.left.coin;
+    const rcoin = dexState.right.coin;
+    if (lcoin === '' || rcoin === '') {
+      return true;
+    } else {
+      const lbalance = getBalanceFor(lcoin);
+      const rbalance = (rcoin === 'XTZ')?dexState.token[lcoin].poolvalue:dexState.token[rcoin].totalqty;
+      const sent = (rcoin === 'XTZ')?parseInt(dexState.right.amount)/1000000:dexState.right.amount;
+      return (
+        dexState.right.amount === '' ||
+        parseInt(sent) > parseInt(rbalance)/2 ||
+        parseInt(dexState.left.amount) > parseInt(lbalance)
+      );
+    }
+  }
   return (
     <Paper style={{ marginTop: '8px' }}>
       <Grid container direction='row' spacing={2} alignItems="center">
@@ -251,7 +199,7 @@ const Exchange = (props) => {
           <Divider></Divider>
         </Grid>
         <Grid item xs={12} style={{ textAlign: 'right', paddingRight : 24, paddingBottom : 16 }}>
-          <Button disabled={dexState.right.amount === ''} variant='contained' color='secondary' disableElevation>exchange</Button>
+          <Button disabled={cannotExchange()} variant='contained' color='secondary' disableElevation>exchange</Button>
         </Grid>
       </Grid>
     </Paper>
