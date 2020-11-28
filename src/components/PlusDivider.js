@@ -7,7 +7,7 @@ const PlusDivider = (props) => {
   const theme = useTheme();
   return (
     <Grid container direction='row' justify="center" alignItems="center" style={{ marginLeft: '8px' }}>
-      <Grid item style={{ width: '47%' }}>
+      <Grid item style={{ width: '45%' }}>
         <Divider></Divider>
       </Grid>
       <Grid item>
@@ -26,7 +26,7 @@ const PlusDivider = (props) => {
           }} color="secondary"/>
         </div>
       </Grid>
-      <Grid item style={{ width: '47%' }}>
+      <Grid item style={{ width: '45%' }}>
         <Divider></Divider>
       </Grid>
     </Grid>

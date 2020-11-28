@@ -29,63 +29,32 @@ const useStyles = makeStyles((theme) => ({
 }));
 
 const LeftEx = (props) => {
-  const { dexState, setProviderAmount, setProviderXTZAmount, switchProviderMax, switchProviderXTZMax, isPoolEmpty } = useDexStateContext();
+  const { dexState } = useDexStateContext();
   const theme = useTheme();
   const svg = 'tezos' + '_' + ((theme.palette.type === 'dark')?'white':'black') + '.svg';
   const classes = useStyles();
   const coin = dexState.provider.coin;
-  const balance = getBalanceFor(coin);
   const xtzbalance = XTZBalance / 1000000;
-  const handleChange = (event) => {
-
-  };
-  const handleMaxChange = (event) => {
-    switchProviderMax(balance);
-  }
-  const handleMaxXTZChange = (event) => {
-    switchProviderXTZMax(XTZBalance);
-  }
-  const handleAmountChange = (event) => {
-    setProviderAmount(event.target.value);
-  }
-  const handleXTZAmountChange = (event) => {
-    setProviderXTZAmount(event.target.value);
-  }
-  const errorAmount = parseInt(dexState.provider.amount) > ((coin !== '')?parseInt(balance):0);
+  const balance = getBalanceFor(coin);
+  const xtzamount = dexState.redeemer.xtzamount;
   return (
-    <Grid container direction='row' spacing={4} style={{ paddingLeft: '24px' }}>
+    <Grid container direction='row' spacing={4} style={{ paddingRight: '44px', marginTop: '2px' }}>
       <Grid item xs={12} style={{ paddingBottom: 0, marginTop: '16px' }}>
         <Grid container direction='row' alignItems="center">
           <Grid item xs={10}>
             <Typography color='textSecondary' style={{ paddingLeft: '12px' }}>Balance: {balance} {coin}</Typography>
           </Grid>
-          <Grid item xs={1}>
-            <Typography>Max</Typography>
-          </Grid>
-          <Grid item xs={1} style={{ textAlign: 'right' }}>
-            <Switch
-              disabled={coin === ''}
-              checked={dexState.provider.maxb}
-              onChange={handleMaxChange}
-              color="secondary"
-              name="max"
-            />
-          </Grid>
         </Grid>
       </Grid>
       <Grid item xs={12}  style={{ paddingTop: 0 }}>
-        <TextField InputProps={{
-            readOnly: dexState.provider.maxb,
+      <TextField InputProps={{
+            readOnly: true,
           }}
-          value={dexState.provider.amount}
-          onChange={handleAmountChange}
+          value={dexState.redeemer.amount}
           type="number" color='secondary' className={classes.formControl}
           id="outlined-basic"
           label="Amount"
           variant="outlined"
-          error={errorAmount}
-          disabled={coin === ''}
-          helperText={errorAmount?'Cannot spend more than balance':''}
         />
       </Grid>
       <Grid item xs={12}>
@@ -95,18 +64,6 @@ const LeftEx = (props) => {
         <Grid container direction='row' alignItems="center">
           <Grid item xs={10}>
             <Typography color='textSecondary' style={{ paddingLeft: '12px' }}>Balance: {xtzbalance} XTZ</Typography>
-          </Grid>
-          <Grid item xs={1}>
-            <Typography>Max</Typography>
-          </Grid>
-          <Grid item xs={1} style={{ textAlign: 'right' }}>
-            <Switch
-              checked={dexState.provider.maxxtzb}
-              onChange={handleMaxXTZChange}
-              color="secondary"
-              name="max"
-              disabled={ balance === '0' }
-            />
           </Grid>
         </Grid>
       </Grid>
@@ -118,17 +75,13 @@ const LeftEx = (props) => {
                 <img src={process.env.PUBLIC_URL + "/icons/" + svg} style={{ height: '35px', width: '35px' }}></img>
               </InputAdornment>
             ),
-            readOnly: dexState.provider.maxxtzb,
+            readOnly: true,
           }}
-          onChange={handleXTZAmountChange}
-          on
-          value={dexState.provider.xtzamount}
-          disabled={ balance === '0' || coin ==='' } color='secondary' className={classes.formControl}
+          value={xtzamount}
+          disabled={ balance === '0' } color='secondary' className={classes.formControl}
           id="outlined-basic"
           label="Amount"
           variant="outlined"
-          error={parseInt(dexState.left.amount) > parseInt(balance)}
-          helperText={parseInt(dexState.left.amount) > parseInt(balance)?'Cannot spend more than balance':''}
         />
       </Grid>
     </Grid>
@@ -136,43 +89,63 @@ const LeftEx = (props) => {
 }
 
 const RightEx = (props) => {
-  const { dexState } = useDexStateContext();
+  const { dexState, setRedeemerMax, setRedeemerAmount } = useDexStateContext();
   const classes = useStyles();
-  const coin = dexState.provider.coin;
+  const coin = dexState.redeemer.coin;
   const balance = (coin in dexState.liquidity)?dexState.liquidity[coin]:0;
+  const handleMaxChange = (event) => {
+    setRedeemerMax(balance);
+  }
+  const handleChange = (event) => {
+    setRedeemerAmount(event.target.value);
+  }
   return (
-    <Grid container direction='row' alignItems="center" spacing={4} style={{ paddingLeft: '0px', paddingRight: '44px', marginTop: '0px' }}>
+    <Grid container direction='row' alignItems="center" spacing={4} style={{ paddingLeft: '24px', paddingRight: '0px', marginTop: '0px' }}>
       <Grid item xs={12}>
         <Typography style={{ fontWeight: 'bold', paddingLeft: '12px', paddingTop: '8px' }} >Liquidity Token</Typography>
       </Grid>
-      <Grid item xs={12} style={{ paddingBottom: 0, marginTop: '36px' }}>
+      <Grid item xs={12} style={{ paddingBottom: 0, marginTop: '24px' }}>
         <Grid container direction='row' alignItems="center">
           <Grid item xs={10}>
             <Typography color='textSecondary' style={{ paddingLeft: '12px' }}>Balance: {balance} LQT</Typography>
           </Grid>
+          <Grid item xs={1}>
+            <Typography>Max</Typography>
+          </Grid>
+          <Grid item xs={1} style={{ textAlign: 'right' }}>
+            <Switch
+              checked={dexState.redeemer.max}
+              onChange={handleMaxChange}
+              color="secondary"
+              name="max"
+              disabled={ balance === '0' }
+            />
+          </Grid>
         </Grid>
       </Grid>
       <Grid item xs={12}  style={{ paddingTop: 0 }}>
-      <TextField InputProps={{
-            readOnly: true,
-          }}
-          value={dexState.provider.liqtoken}
+        <TextField
+          value={dexState.redeemer.liqtoken}
+          onChange={ handleChange }
           type="number" color='secondary' className={classes.formControl}
           id="outlined-basic"
-          label="Received Amount"
+          label="LQT Amount"
           variant="outlined"
+          error={dexState.redeemer.liqtoken > balance}
+          helperText={dexState.redeemer.liqtoken > balance?'Cannot redeem more than balance':''}
+          disabled={coin === ''}
         />
       </Grid>
     </Grid>
   )
 }
 
-const Provider = (props) => {
-    const { dexState, setProviderCoin } = useDexStateContext();
+const Redeemer = (props) => {
+    const { dexState, setRedeemerCoin } = useDexStateContext();
     const classes = useStyles();
-    const coin = dexState.provider.coin;
+    const coin = dexState.redeemer.coin;
     const handleChange = (event) => {
-      setProviderCoin(event.target.value);
+      setRedeemerCoin(event.target.value);
     };
     return (
       <Paper style={{ marginTop: '8px', minWidth: '1000px' }}>
@@ -215,13 +188,13 @@ const Provider = (props) => {
           <Grid item xs={12}>
             <Grid container direction='row' style={{ width: '100%' }}>
               <Grid item style={{ width: '45%' }}>
-                <LeftEx/>
+                <RightEx/>
               </Grid>
               <Grid item style={{ textAlign: '-webkit-center', width: '10%' }}>
                 <VerticialDivider></VerticialDivider>
               </Grid>
               <Grid item style={{ width: '45%' }}>
-                <RightEx/>
+                <LeftEx/>
             </Grid>
           </Grid>
         </Grid>
@@ -229,11 +202,11 @@ const Provider = (props) => {
             <Divider></Divider>
           </Grid>
           <Grid item xs={12} style={{ textAlign: 'right', paddingRight : 24, paddingBottom : 16 }}>
-            <Button disabled={dexState.provider.liqtoken === ''} variant='contained' color='secondary' disableElevation>provide liquidiy</Button>
+            <Button disabled={dexState.redeemer.amount === ''} variant='contained' color='secondary' disableElevation>redeem liquidiy</Button>
           </Grid>
         </Grid>
       </Paper>
     )
   }
 
-  export default Provider;
+  export default Redeemer;

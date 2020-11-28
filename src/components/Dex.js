@@ -8,7 +8,7 @@ import MenuItem from '@material-ui/core/MenuItem';
 import FormControl from '@material-ui/core/FormControl';
 import Select from '@material-ui/core/Select';
 import { makeStyles } from '@material-ui/core/styles';
-import { cities, getCoinLabel, getBalanceFor } from '../settings';
+import { cities, getCoinLabel, getBalanceFor, XTZBalance } from '../settings';
 import { useDexStateContext } from '../dexstate';
 import TextField from '@material-ui/core/TextField';
 import Switch from '@material-ui/core/Switch';
@@ -29,7 +29,8 @@ const LeftEx = (props) => {
   const { dexState, setLeftCoin, setLeftAmount, switchMax } = useDexStateContext();
   const classes = useStyles();
   const coin = dexState.left.coin;
-  const balance = getBalanceFor(coin);
+  const xtzbalance = XTZBalance / 1000000;
+  const balance = (coin === 'XTZ')?xtzbalance:getBalanceFor(coin);
   const handleChange = (event) => {
     setLeftCoin(event.target.value);
   };
@@ -59,7 +60,7 @@ const LeftEx = (props) => {
             <MenuItem value="">
               <em>None</em>
             </MenuItem>
-            { cities.filter(city => getCoinLabel(city) !== dexState.right.coin && balance !== '0').map(city =>
+            { cities.filter(city => getCoinLabel(city) !== dexState.right.coin).map(city =>
               <MenuItem value={getCoinLabel(city)}><CoinItem name={city} show={true}/></MenuItem>
             )}
           </Select>
@@ -90,7 +91,7 @@ const LeftEx = (props) => {
           }}
           onChange={handleAmountChange}
           value={dexState.left.amount}
-          disabled={ balance === '0' } type="number" color='secondary' className={classes.formControl}
+          disabled={ balance === '0' } type={(coin === 'XTZ')?"text":"number"} color='secondary' className={classes.formControl}
           id="outlined-basic"
           label="Amount"
           variant="outlined"
@@ -110,7 +111,15 @@ const RightEx = (props) => {
   };
   const coin = dexState.right.coin;
   const sent = (coin === 'XTZ')?parseInt(dexState.right.amount)/1000000:dexState.right.amount;
-  const exbalance = (coin === 'XTZ')?dexState.token[dexState.left.coin].poolvalue:(coin==='')?'0':dexState.token[coin].totalqty;
+  var exbalance = 0;
+  if (dexState.left.coin !== '' && coin !== '') {
+    if (coin === 'XTZ') {
+      exbalance = dexState.token[dexState.left.coin].poolvalue / 1000000;
+    } else {
+      exbalance = dexState.token[coin].totalqty;
+    }
+  };
+  var fee = (coin === 'XTZ' && dexState.right.fee !== '')?parseInt(dexState.right.fee)/1000000:dexState.right.fee
   return (
     <Grid container direction='row' spacing={4} style={{ paddingRight: '24px' }}>
       <Grid item xs={12}>
@@ -141,7 +150,7 @@ const RightEx = (props) => {
         <Typography color='textSecondary'>Exchange balance: {exbalance} {coin}</Typography>
       </Grid>
       <Grid item xs={12} style={{ paddingBottom: '6px', paddingTop: '0px'}}>
-      <Typography color='textSecondary' style={{ paddingLeft: '0' }}>Fee: {(coin === 'XTZ')?parseInt(dexState.right.fee)/1000000:dexState.right.fee} {coin}</Typography>
+      <Typography color='textSecondary' style={{ paddingLeft: '0' }}>Fee: {fee} {coin}</Typography>
       </Grid>
       <Grid item xs={12} style={{ paddingTop: 0, paddingLeft: 0, paddingRight: '34px' }}>
         <TextField InputProps={{
@@ -180,7 +189,7 @@ const Exchange = (props) => {
     }
   }
   return (
-    <Paper style={{ marginTop: '8px' }}>
+    <Paper style={{ marginTop: '8px', minWidth: '1000px' }}>
       <Grid container direction='row' spacing={2} alignItems="center">
         <Grid item xs={12}>
           <Grid container direction='row' style={{ width: '100%' }}>
