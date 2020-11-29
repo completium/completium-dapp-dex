@@ -1,6 +1,6 @@
 archetype dex
 
-constant fee           : rational = 0.003
+constant gamma         : rational = 1 - 0.003
 constant epsilon       : nat = 1
 constant initialminted : nat = 1_000_000
 
@@ -28,45 +28,60 @@ entry registertoken (i : string, a : address) {
   effect { token.add({ id = i; addr = a }); }
 }
 
-/* 'caller' sells 'srcqty' of 'src' token
-   and acquires 'dstqty' of 'dst' token
-   this generates 2 transfers :
-  - from caller to token pool of 'srcqty' tokens
-  - from token pool to caller of 'dstqty' tokens
-  This assumes that caller has emitted an 'allow' transaction prior to this on src token contract.
+function compute_exchanged(aA : nat, qA : nat, qB : nat) : rational {
+  return (qB * gamma * aA / (qA + gamma * aA))
+}
+
+/* 'caller' sells 'aA' of 'tA' token
+   and receives 'bB' of 'tB' token
 */
-entry exchange(src : string, srcqty: nat, dst : string, dstqty : nat) {
+entry exchange(tA : string, aA: nat, tB : string, aB : nat) {
   require {
-    r0 otherwise "SRC_EQ_DST" : src <> dst;
+    r0 otherwise "SRC_EQ_DST" : tA <> tB;
   }
   effect {
-    var srctotalqty = if src = "XTZ" then token[dst].poolvalue else token[src].totalqty;
-    var dsttotalqty = if dst = "XTZ" then token[src].poolvalue else token[dst].totalqty;
-
-    var K = srctotalqty * dsttotalqty;
-    var expecteddstqty = dsttotalqty - K / (srctotalqty + (1 - fee) * srcqty);
-    if (abs(expecteddstqty - dstqty) > epsilon) then fail(("INVALID_DST_QTY",expecteddstqty));
-
-    if src <> "XTZ" then token.update(src, { totalqty += srcqty });
-    if dst <> "XTZ" then token.update(dst, { totalqty -= dstqty });
-
-    if src = "XTZ"  then begin
+    if tA = "XTZ" then begin
+      var qA = token[tB].poolvalue;
+      var qB = token[tB].totalqty;
+      var expectedB = compute_exchanged(aA,qA,qB);
+      if (abs(expectedB - aB) > epsilon) then fail(("INVALID_B_AMOUNT",expectedB));
       var xtzin : nat = transferred;
-      if srcqty <> xtzin then fail(("INVALID_SRC_QTY",xtzin))
-    end else
-      match_option entrypoint<(address * address * nat)>("%transfer",token[src].addr) with
-      | some(transfer_src) ->
-        transfer 0tz to entry transfer_src((caller, selfaddress, srcqty))
-      | none -> fail("INVALID_SRC_ENTRY")
+      if aA <> xtzin then fail(("INVALID_A_AMOUNT",xtzin));
+      match_option entrypoint<(address * address * nat)>("%transfer",token[tB].addr) with
+      | some(transferB) ->
+        transfer 0tz to entry transferB((selfaddress, caller, aB))
+      | none -> fail("INVALID_B_ENTRY")
       end;
-    if dst = "XTZ" then
-      transfer (dstqty * 1utz) to caller
-    else
-      match_option entrypoint<(address * address * nat)>("%transfer",token[dst].addr) with
-      | some(transfer_dst) ->
-        transfer 0tz to entry transfer_dst((selfaddress, caller, dstqty))
-      | none -> fail("INVALID_DST_ENTRY")
+    end else if tB = "XTZ" then begin
+      var qA = token[tA].totalqty;
+      var qB = token[tA].poolvalue;
+      var expectedB = compute_exchanged(aA,qA,qB);
+      if (abs(expectedB - aB) > epsilon) then fail(("INVALID_B_AMOUNT",expectedB));
+      match_option entrypoint<(address * address * nat)>("%transfer",token[tA].addr) with
+      | some(transferA) ->
+        transfer 0tz to entry transferA((caller, selfaddress, aA))
+      | none -> fail("INVALID_A_ENTRY")
       end;
+      transfer (qB * 1utz) to caller;
+    end else begin
+      var qA  = token[tA].totalqty;
+      var qTA = token[tA].poolvalue;
+      var aT  = abs(floor(compute_exchanged(aA,qA,qTA)));
+      var qTB = token[tB].poolvalue;
+      var qB  = token[tB].totalqty;
+      var expectedB = compute_exchanged(aT,qTB,qB);
+      if (abs(expectedB - aB) > epsilon) then fail(("INVALID_B_AMOUNT",expectedB));
+      match_option entrypoint<(address * address * nat)>("%transfer",token[tA].addr) with
+      | some(transferA) ->
+        transfer 0tz to entry transferA((caller, selfaddress, aA))
+      | none -> fail("INVALID_A_ENTRY")
+      end;
+      match_option entrypoint<(address * address * nat)>("%transfer",token[tB].addr) with
+      | some(transferA) ->
+        transfer 0tz to entry transferA((selfaddress, caller, aB))
+      | none -> fail("INVALID_B_ENTRY")
+      end;
+    end
   }
 }
 
@@ -82,20 +97,20 @@ entry exchange(src : string, srcqty: nat, dst : string, dstqty : nat) {
   mintedLTQ / token[dst].totalltq = transferred XTZ / token[dts].pool <=>
   mintedLTQ = token[dst].totalltq * transferred XTZ / token[dts].pool
 */
-entry addLiquidity(dst : string, dstqty : nat) {
+entry addLiquidity(tL : string, qL : nat) {
   /* TODO : check transferred value */
-  match_option entrypoint<(address * address * nat)>("%transfer",token[dst].addr) with
+  match_option entrypoint<(address * address * nat)>("%transfer",token[tL].addr) with
    | some(transfer_src) ->
-     transfer 0tz to entry transfer_src((caller, selfaddress, dstqty))
+     transfer 0tz to entry transfer_src((caller, selfaddress, qL))
    | none -> fail("INVALID_DST_ENTRY")
   end;
   /* mint LQT tokens */
   var xtzin : nat = transferred;
   var mintedLTQ =
-    if token[dst].poolvalue = 0 then initialminted
-    else abs(floor(token[dst].totallqt * xtzin / token[dst].poolvalue));
-  liquidity.addupdate((dst, caller), { lqt += mintedLTQ });
-  token.update(dst, { poolvalue += xtzin; totalqty += dstqty; totallqt += mintedLTQ })
+    if token[tL].poolvalue = 0 then initialminted
+    else abs(floor(token[tL].totallqt * xtzin / token[tL].poolvalue));
+  liquidity.addupdate((tL, caller), { lqt += mintedLTQ });
+  token.update(tL, { poolvalue += xtzin; totalqty += qL; totallqt += mintedLTQ })
 }
 
 /*
@@ -103,16 +118,16 @@ entry addLiquidity(dst : string, dstqty : nat) {
   - transfer of XTZ in proportion of the token pool
   - transfer of src tokens in proportion of the token pool
 */
-entry removeLiquidity(lqtqty : nat, dst : string) {
+entry removeLiquidity(qL : nat, tA : string) {
   require {
-    r1 otherwise "NOT_ENOUGHT_LQT": lqtqty <= liquidity[(dst, caller)].lqt
+    r1 otherwise "NOT_ENOUGHT_LQT": qL <= liquidity[(tA, caller)].lqt
   }
   effect {
-    var lqtratio = lqtqty / token[dst].totallqt;
-    transfer (lqtratio * token[dst].poolvalue * 1utz) to caller;
-    match_option entrypoint<(address * address * nat)>("%transfer",token[dst].addr) with
+    var lqtratio = qL / token[tA].totallqt;
+    transfer (lqtratio * token[tA].poolvalue * 1utz) to caller;
+    match_option entrypoint<(address * address * nat)>("%transfer",token[tA].addr) with
     | some(transfer_src) ->
-      var qty = abs(floor(lqtratio * token[dst].totalqty));
+      var qty = abs(floor(lqtratio * token[tA].totalqty));
       transfer 0tz to entry transfer_src((selfaddress, caller, qty))
     | none -> fail("INVALID_DST_ENTRY")
    end;
