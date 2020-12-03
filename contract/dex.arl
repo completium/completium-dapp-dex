@@ -52,6 +52,7 @@ entry exchange(tA : string, aA: nat, tB : string, aB : nat) {
         transfer 0tz to entry transferB((selfaddress, caller, aB))
       | none -> fail("INVALID_B_ENTRY")
       end;
+      token.update(tB, { poolvalue += xtzin; totalqty -= aB });
     end else if tB = "XTZ" then begin
       var qA = token[tA].totalqty;
       var qB = token[tA].poolvalue;
@@ -62,7 +63,8 @@ entry exchange(tA : string, aA: nat, tB : string, aB : nat) {
         transfer 0tz to entry transferA((caller, selfaddress, aA))
       | none -> fail("INVALID_A_ENTRY")
       end;
-      transfer (qB * 1utz) to caller;
+      transfer (aB * 1utz) to caller;
+      token.update(tA, { poolvalue -= aB; totalqty += aA });
     end else begin
       var qA  = token[tA].totalqty;
       var qTA = token[tA].poolvalue;
@@ -81,6 +83,8 @@ entry exchange(tA : string, aA: nat, tB : string, aB : nat) {
         transfer 0tz to entry transferA((selfaddress, caller, aB))
       | none -> fail("INVALID_B_ENTRY")
       end;
+      token.update(tA, { poolvalue -= aT; totalqty += aA });
+      token.update(tB, { poolvalue += aT; totalqty -= aB });
     end
   }
 }
