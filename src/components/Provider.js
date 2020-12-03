@@ -207,7 +207,7 @@ const Provider = (props) => {
                 </Grid>
                 <Grid item xs={5}>
                   <Typography color='textSecondary'>Pool XTZ balance:</Typography>
-                  <Typography> {(coin !== '')?dexState.token[coin].poolvalue + ' XTZ':''}</Typography>
+                  <Typography> {(coin !== '')?dexState.token[coin].poolvalue / 1000000 + ' XTZ':''}</Typography>
                 </Grid>
               </Grid>
             </Paper>
