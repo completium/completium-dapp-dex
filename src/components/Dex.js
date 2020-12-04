@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import Paper from '@material-ui/core/Paper';
 import Typography from '@material-ui/core/Typography';
 import Button from '@material-ui/core/Button';
@@ -8,7 +9,6 @@ import MenuItem from '@material-ui/core/MenuItem';
 import FormControl from '@material-ui/core/FormControl';
 import Select from '@material-ui/core/Select';
 import { makeStyles } from '@material-ui/core/styles';
-import { cities, getCoinLabel } from '../settings';
 import { useDexStateContext } from '../dexstate';
 import TextField from '@material-ui/core/TextField';
 import Switch from '@material-ui/core/Switch';
@@ -48,6 +48,7 @@ const LeftEx = (props) => {
   const handleAmountChange = (event) => {
     setLeftAmount(event.target.value);
   }
+  const cities = ['XTZ'].concat(Object.keys(dexState.token));
   return (
     <Grid container direction='row' spacing={4} style={{ paddingLeft: '24px' }}>
       <Grid item xs={12}>
@@ -68,8 +69,8 @@ const LeftEx = (props) => {
             <MenuItem value="">
               <em>None</em>
             </MenuItem>
-            { cities.filter(city => getCoinLabel(city) !== dexState.right.coin).map(city =>
-              <MenuItem value={getCoinLabel(city)}><CoinItem name={city} show={true}/></MenuItem>
+            { cities.filter(city => city !== dexState.right.coin).map(city =>
+              <MenuItem value={city}><CoinItem name={city} show={true}/></MenuItem>
             )}
           </Select>
         </FormControl>
@@ -127,7 +128,8 @@ const RightEx = (props) => {
       exbalance = dexState.token[coin].totalqty;
     }
   };
-  var fee = (coin === 'XTZ' && dexState.right.fee !== '')?parseInt(dexState.right.fee)/1000000:dexState.right.fee
+  var fee = (coin === 'XTZ' && dexState.right.fee !== '')?parseInt(dexState.right.fee)/1000000:dexState.right.fee;
+  const cities = ['XTZ'].concat(Object.keys(dexState.token));
   return (
     <Grid container direction='row' spacing={4} style={{ paddingRight: '24px' }}>
       <Grid item xs={12}>
@@ -148,8 +150,8 @@ const RightEx = (props) => {
             <MenuItem value="">
               <em>None</em>
             </MenuItem>
-            { cities.filter(city => getCoinLabel(city) !== dexState.left.coin).map(city =>
-              <MenuItem value={getCoinLabel(city)}><CoinItem name={city} show={true}/></MenuItem>
+            { cities.filter(city => city !== dexState.left.coin).map(city =>
+              <MenuItem value={city}><CoinItem name={city} show={true}/></MenuItem>
             )}
           </Select>
         </FormControl>
@@ -179,7 +181,8 @@ const RightEx = (props) => {
 }
 
 const Exchange = (props) => {
-  const { dexState } = useDexStateContext();
+  const [initialized, setInititialized] = useState(false);
+  const { dexState, loadDexTokens } = useDexStateContext();
   const cannotExchange = () => {
     const lcoin = dexState.left.coin;
     const rcoin = dexState.right.coin;
@@ -195,6 +198,10 @@ const Exchange = (props) => {
         parseInt(dexState.left.amount) > parseInt(lbalance)
       );
     }
+  }
+  if (!initialized) {
+    loadDexTokens();
+    setInititialized(true);
   }
   return (
     <Paper style={{ marginTop: '8px', minWidth: '1000px' }}>

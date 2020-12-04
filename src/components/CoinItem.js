@@ -2,27 +2,36 @@ import { useTheme } from '@material-ui/core/styles';
 import Typography from '@material-ui/core/Typography';
 import Grid from '@material-ui/core/Grid';
 import { useDexStateContext } from '../dexstate';
-import { getCityName, getCoinLabel } from '../settings';
+import { getCityName } from '../settings';
 
 const CoinItem = (props) => {
-  const { getXTZFor } = useDexStateContext();
+  const { dexState, getXTZFor } = useDexStateContext();
   const theme = useTheme();
-  const svg = props.name + '_' + ((theme.palette.type === 'dark')?'white':'black') + '.svg';
+  const icon = (props.name === 'XTZ')?(
+    process.env.PUBLIC_URL + "/icons/" + 'tezos_' + ((theme.palette.type === 'dark')?'white':'black') + '.svg'
+  ):(
+    dexState.token[props.name].iconurl
+  );
+  const name = (props.name === 'XTZ')?(
+    'Tezos'
+  ):(
+    dexState.token[props.name].name
+  );
   return (
     <Grid container direction='row' justify="flex-start" alignItems="center" spacing={0}>
       <Grid item xs={1}>
-      <img src={"https://raw.githubusercontent.com/edukera/completium-dapp-dex/master/public/icons/" + svg} style={{ height: '35px', width: '35px' }}></img>
+      <img src={icon} style={{ height: '35px', width: '35px' }}></img>
       </Grid>
       <Grid item xs={2} style={{ paddingLeft: (props.show)?'12px':'24px' }}>
-        <Typography style={{ textTransform: 'uppercase' }}>{getCoinLabel(props.name)}</Typography>
+        <Typography style={{ textTransform: 'uppercase' }}>{props.name}</Typography>
       </Grid>
       <Grid item xs={3} style={{ paddingLeft: (props.show)?'0px':'24px' }}>
-        <Typography color='textSecondary'>{getCityName(props.name)}</Typography>
+        <Typography color='textSecondary'>{name}</Typography>
       </Grid>
-      { (props.name !== 'tezos' && props.show)? (
+      { (props.name !== 'XTZ' && props.show)? (
         <Grid item xs={6} style={{ textAlign: 'right' }}>
           <Typography color='textSecondary'>({
-            new Intl.NumberFormat('en-IN',{maximumFractionDigits : 6}).format(getXTZFor(getCoinLabel(props.name),1)) + ' XTZ'
+            new Intl.NumberFormat('en-IN',{maximumFractionDigits : 6}).format(getXTZFor(props.name,1)) + ' XTZ'
           })</Typography>
         </Grid>
       ) : (

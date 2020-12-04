@@ -8,7 +8,6 @@ import MenuItem from '@material-ui/core/MenuItem';
 import FormControl from '@material-ui/core/FormControl';
 import Select from '@material-ui/core/Select';
 import { makeStyles } from '@material-ui/core/styles';
-import { cities, getCoinLabel } from '../settings';
 import { useDexStateContext } from '../dexstate';
 import TextField from '@material-ui/core/TextField';
 import Switch from '@material-ui/core/Switch';
@@ -179,6 +178,7 @@ const Provider = (props) => {
     const handleChange = (event) => {
       setProviderCoin(event.target.value);
     };
+    const cities = Object.keys(dexState.token);
     return (
       <Paper style={{ marginTop: '8px', minWidth: '1000px' }}>
         <Grid container direction='row' spacing={2} alignItems="center">
@@ -197,8 +197,8 @@ const Provider = (props) => {
               <MenuItem value="">
                 <em>None</em>
               </MenuItem>
-              { cities.filter(city => getCoinLabel(city) !== 'XTZ').map(city =>
-                <MenuItem value={getCoinLabel(city)}><CoinItem name={city} show={false}/></MenuItem>
+              { cities.map(city =>
+                <MenuItem value={city}><CoinItem name={city} show={false}/></MenuItem>
               )}
             </Select>
             </FormControl>

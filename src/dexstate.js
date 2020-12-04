@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import constate from 'constate';
 import { useAccountPkh, useReady } from './dapp';
-import { getBalanceFor, network } from './settings';
+import { getBalanceFor, network, dexContract } from './settings';
 import { TezosToolkit } from '@taquito/taquito';
 
 const Tezos = new TezosToolkit('https://'+network+'-tezos.giganode.io');
@@ -57,6 +57,39 @@ export function useDexState() {
   });
   const isReady = () => {
     return !(dexState.token === []);
+  }
+  const loadDexTokens = () => {
+    Tezos.contract.at(dexContract)
+      .then(c => {
+        return c.storage()
+      .then (s => {
+        var token = {};
+        s.token.forEach((l,k,m) => {
+          token[k] = {
+            addr: l.addr,
+            name: l.name,
+            iconurl: l.iconurl,
+            poolvalue: l.poolvalue.toString(),
+            totalqty: l.totalqty.toString()
+          }
+        });
+        console.log('loaded tokens:', token);
+        var liquidity = {};
+        s.liquidity.forEach((l,k,m) => {
+          console.log(k);
+        });
+        setDexState({
+          balance : dexState.balance,
+          balances : dexState.balances,
+          token: token,
+          left: dexState.left,
+          right: dexState.right,
+          liquidity: dexState.liquidity,
+          provider: dexState.provider,
+          redeemer: dexState.redeemer
+        })
+      })})
+      .catch(error => console.log(`Error: ${JSON.stringify(error, null, 2)}`));
   }
   /* compute amount of token B and fee when providing qA amount of token A */
   const computeAmount = (aA,qA,qB,f) => {
@@ -250,47 +283,30 @@ export function useDexState() {
   }
   const retrieveTokenBalance = (state, coin) => {
     if (ready && coin !== '' && !(coin in state.balances)) {
-      if (coin === 'XPA' || coin === 'XLD') {
-        const address = state.token[coin].addr;
-        Tezos.contract.at(address)
-        .then( myContract => {
-          return myContract.storage()
-        .then ( myStorage => {
-          //When called on a map, the get method returns the value directly
-          myStorage['ledger'].get(account).then(value => {
-            var balances = state.balances;
-            console.log(`value: ${value.toString()}`);
-            balances[coin] = value.toString();
-            setDexState({
-              balance : state.balance,
-              balances : balances,
-              token: state.token,
-              left: state.left,
-              right: state.right,
-              liquidity: state.liquidity,
-              pool: state.pool,
-              provider: state.provider,
-              redeemer: state.redeemer,
-            })
-          });
-        })})
-        .catch(error => console.log(`Error: ${JSON.stringify(error, null, 2)}`));
-      } else {
-        const value = getBalanceFor(coin);
-        var balances = state.balances;
-        balances[coin] = value;
-        setDexState({
-          balance : state.balance,
-          balances : balances,
-          token: state.token,
-          left: state.left,
-          right: state.right,
-          liquidity: state.liquidity,
-          pool: state.pool,
-          provider: state.provider,
-          redeemer: state.redeemer,
-        })
-      }
+      const address = state.token[coin].addr;
+      Tezos.contract.at(address)
+      .then( myContract => {
+        return myContract.storage()
+      .then ( myStorage => {
+        //When called on a map, the get method returns the value directly
+        myStorage['ledger'].get(account).then(value => {
+          var balances = state.balances;
+          console.log(`value: ${value.toString()}`);
+          balances[coin] = value.toString();
+          setDexState({
+            balance : state.balance,
+            balances : balances,
+            token: state.token,
+            left: state.left,
+            right: state.right,
+            liquidity: state.liquidity,
+            pool: state.pool,
+            provider: state.provider,
+            redeemer: state.redeemer,
+          })
+        });
+      })})
+      .catch(error => console.log(`Error: ${JSON.stringify(error, null, 2)}`));
     }
   }
   const setLeftCoin = (coin) => {
@@ -528,7 +544,7 @@ export function useDexState() {
     provider: dexState.provider,
     redeemer: dexState.redeemer
   })};
-  return { dexState, setDexState, setBalance, isReady,
+  return { dexState, setDexState, setBalance, isReady, loadDexTokens,
     getXTZFor, setLeftCoin, setRightCoin, setLeftAmount, switchMax,
     setProviderCoin, setProviderAmount, setProviderXTZAmount, switchProviderMax, switchProviderXTZMax,
     setRedeemerCoin, setRedeemerMax, setRedeemerAmount };
