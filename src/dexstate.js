@@ -58,6 +58,32 @@ export function useDexState() {
   const isReady = () => {
     return !(dexState.token === []);
   }
+  const loadLiquidity = () => {
+    Tezos.contract.at(dexContract)
+      .then(c => {
+        return c.storage()
+      .then (s => {
+        var liquidity = {};
+        s.liquidity.forEach((l,k,m) => {
+          /* k = {0: 'XPA', 1: 'tz1Lc2qBKEWCBeDU8npG6zCeCqpmaegRi6Jg'} */
+          if (k[1] === account) {
+            liquidity[k[0]] = l.toString()
+          }
+        });
+        console.log('loaded liquidity:', liquidity);
+        setDexState(state => { return {
+          balance : state.balance,
+          balances : state.balances,
+          token: state.token,
+          left: state.left,
+          right: state.right,
+          liquidity: liquidity,
+          provider: state.provider,
+          redeemer: state.redeemer
+        }})
+      })})
+      .catch(error => console.log(`Error: ${JSON.stringify(error, null, 2)}`));
+  }
   const loadDexTokens = () => {
     Tezos.contract.at(dexContract)
       .then(c => {
@@ -76,7 +102,10 @@ export function useDexState() {
         console.log('loaded tokens:', token);
         var liquidity = {};
         s.liquidity.forEach((l,k,m) => {
-          console.log(k);
+          /* {0: 'XPA', 1: 'tz1Lc2qBKEWCBeDU8npG6zCeCqpmaegRi6Jg'} */
+          if (k[1] === account) {
+            liquidity[k[0]] = l.toString()
+          }
         });
         setDexState({
           balance : dexState.balance,
@@ -282,7 +311,7 @@ export function useDexState() {
     return computeAmount(1000000,srctotalqty,dsttotalqty,fee) / 1000000;
   }
   const retrieveTokenBalance = (state, coin) => {
-    if (ready && coin !== '' && !(coin in state.balances)) {
+    if (ready && coin !== '' && coin !== 'XTZ' && !(coin in state.balances)) {
       const address = state.token[coin].addr;
       Tezos.contract.at(address)
       .then( myContract => {
@@ -544,7 +573,7 @@ export function useDexState() {
     provider: dexState.provider,
     redeemer: dexState.redeemer
   })};
-  return { dexState, setDexState, setBalance, isReady, loadDexTokens,
+  return { dexState, setDexState, setBalance, isReady, loadDexTokens, loadLiquidity,
     getXTZFor, setLeftCoin, setRightCoin, setLeftAmount, switchMax,
     setProviderCoin, setProviderAmount, setProviderXTZAmount, switchProviderMax, switchProviderXTZMax,
     setRedeemerCoin, setRedeemerMax, setRedeemerAmount };

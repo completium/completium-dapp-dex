@@ -16,6 +16,9 @@ import VerticialDivider from './VerticalDivider';
 import InputAdornment from '@material-ui/core/InputAdornment';
 import { useTheme } from '@material-ui/core/styles';
 import PlusDivider from './PlusDivider';
+import { useTezos } from '../dapp.js';
+import { dexContract } from '../settings';
+import { OpKind } from '@taquito/taquito';
 
 const useStyles = makeStyles((theme) => ({
   formControl: {
@@ -174,11 +177,27 @@ const RightEx = (props) => {
 const Provider = (props) => {
     const { dexState, setProviderCoin } = useDexStateContext();
     const classes = useStyles();
+    const tezos = useTezos();
     const coin = dexState.provider.coin;
     const handleChange = (event) => {
       setProviderCoin(event.target.value);
     };
     const cities = Object.keys(dexState.token);
+    async function handleProvide() {
+      const fa12 = await tezos.wallet.at(dexState.token[coin].addr);
+      const dex = await tezos.wallet.at(dexContract);
+      const fa12params = fa12.methods.approve(dexContract,dexState.provider.amount).toTransferParams();
+      fa12params.kind = OpKind.TRANSACTION;
+      const dexparams = dex.methods.addLiquidity(coin,dexState.provider.amount).toTransferParams();
+      dexparams.kind = OpKind.TRANSACTION;
+      dexparams.amount = dexState.provider.xtzamount;
+      const batch = await tezos.wallet.batch([fa12params, dexparams]);
+      const op = await batch.send();
+      props.openSnack();
+      op.receipt().then(() => {
+          props.closeSnack();
+      })
+    };
     return (
       <Paper style={{ marginTop: '8px', minWidth: '1000px' }}>
         <Grid container direction='row' spacing={2} alignItems="center">
@@ -234,7 +253,7 @@ const Provider = (props) => {
             <Divider></Divider>
           </Grid>
           <Grid item xs={12} style={{ textAlign: 'right', paddingRight : 24, paddingBottom : 16 }}>
-            <Button disabled={dexState.provider.liqtoken === ''} variant='contained' color='secondary' disableElevation>provide liquidiy</Button>
+            <Button onClick={handleProvide} disabled={dexState.provider.liqtoken === ''} variant='contained' color='secondary' disableElevation>provide liquidiy</Button>
           </Grid>
         </Grid>
       </Paper>

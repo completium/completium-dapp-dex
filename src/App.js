@@ -5,7 +5,6 @@ import { DexProvider, useDexStateContext } from './dexstate';
 import { appName, appTitle, network } from './settings';
 import { createMuiTheme, ThemeProvider } from '@material-ui/core/styles';
 import HeaderBar from './components/HeaderBar';
-import useMediaQuery from '@material-ui/core/useMediaQuery';
 import CssBaseline from '@material-ui/core/CssBaseline';
 import Container from '@material-ui/core/Container';
 import SnackMsg from './components/SnackMsg';
@@ -30,22 +29,23 @@ function App() {
   );
 }
 
-const getComponent = (value) => {
+const getComponent = (value, openSnack, closeSnack) => {
   switch (value) {
-    case 0: return <Exchange />;
-    case 1: return <Provider />;
-    case 2: return <Redeemer />;
+    case 0: return <Exchange openSnack={openSnack} closeSnack={closeSnack}/>;
+    case 1: return <Provider openSnack={openSnack} closeSnack={closeSnack}/>;
+    case 2: return <Redeemer openSnack={openSnack} closeSnack={closeSnack}/>;
     default: return <div></div>;
   }
 }
 
 const PageRouter = () => {
   const [viewSnack, setViewSnack] = useState(false);
+  const [initialized, setInitialized] = useState(false);
   const [computeBalance, setComputeBalance] = useState(false);
   const [value, setValue] = React.useState(0);
   const account = useAccountPkh();
   const ready = useReady();
-  const { setBalance } = useDexStateContext();
+  const { setBalance, loadLiquidity } = useDexStateContext();
 
   const handleChange = (event, newValue) => {
     setValue(newValue);
@@ -81,6 +81,10 @@ const PageRouter = () => {
   const closeSnack = () => {
     setViewSnack(false);
   }
+  if (account !== null && !initialized) {
+    loadLiquidity();
+    setInitialized(true);
+  }
   if (ready && computeBalance) {
     Tezos.tz
       .getBalance(account)
@@ -106,7 +110,7 @@ const PageRouter = () => {
           <Tab label="Redeem Liquidity"/>
           <Tab label="History" disabled />
         </Tabs>
-        { getComponent(value) }
+        { getComponent(value, openSnack, closeSnack) }
       </Container>
       <SnackMsg open={viewSnack} theme={theme} />
     </ThemeProvider>

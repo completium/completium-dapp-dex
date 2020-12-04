@@ -14,6 +14,9 @@ import TextField from '@material-ui/core/TextField';
 import Switch from '@material-ui/core/Switch';
 import CoinItem from './CoinItem';
 import VerticialDivider from './VerticalDivider';
+import { useTezos } from '../dapp';
+import { dexContract } from '../settings';
+import { OpKind } from '@taquito/taquito';
 
 const useStyles = makeStyles((theme) => ({
   formControl: {
@@ -183,6 +186,7 @@ const RightEx = (props) => {
 const Exchange = (props) => {
   const [initialized, setInititialized] = useState(false);
   const { dexState, loadDexTokens } = useDexStateContext();
+  const tezos = useTezos();
   const cannotExchange = () => {
     const lcoin = dexState.left.coin;
     const rcoin = dexState.right.coin;
@@ -202,6 +206,41 @@ const Exchange = (props) => {
   if (!initialized) {
     loadDexTokens();
     setInititialized(true);
+  }
+  async function handleExchange() {
+    const lcoin = dexState.left.coin;
+    const rcoin = dexState.right.coin;
+    const dex = await tezos.wallet.at(dexContract);
+    if (lcoin === 'XTZ') {
+      /* one transaction to dex */
+      const dex = await tezos.wallet.at(dexContract);
+      const op = await dex.methods.exchange(
+        dexState.left.coin,
+        dexState.left.amount * 1000000,
+        dexState.right.coin,
+        dexState.right.amount).send({ amount: dexState.left.amount });
+      props.openSnack();
+      op.receipt().then(() => {
+        props.closeSnack();
+      })
+    } else {
+      const m = (dexState.right.coin === 'XTZ')?1000000:1;
+      const fa12 = await tezos.wallet.at(dexState.token[lcoin].addr);
+      const fa12params = fa12.methods.approve(dexContract,dexState.left.amount).toTransferParams();
+      fa12params.kind = OpKind.TRANSACTION;
+      const dexparams = dex.methods.exchange(
+        dexState.left.coin,
+        dexState.left.amount,
+        dexState.right.coin,
+        dexState.right.amount * m).toTransferParams();
+      dexparams.kind = OpKind.TRANSACTION;
+      const batch = await tezos.wallet.batch([fa12params, dexparams]);
+      const op = await batch.send();
+      props.openSnack();
+      op.receipt().then(() => {
+          props.closeSnack();
+      })
+    }
   }
   return (
     <Paper style={{ marginTop: '8px', minWidth: '1000px' }}>
@@ -223,7 +262,7 @@ const Exchange = (props) => {
           <Divider></Divider>
         </Grid>
         <Grid item xs={12} style={{ textAlign: 'right', paddingRight : 24, paddingBottom : 16 }}>
-          <Button disabled={cannotExchange()} variant='contained' color='secondary' disableElevation>exchange</Button>
+          <Button onClick={handleExchange} disabled={cannotExchange()} variant='contained' color='secondary' disableElevation>exchange</Button>
         </Grid>
       </Grid>
     </Paper>
