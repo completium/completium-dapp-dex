@@ -6,6 +6,8 @@ constant initialminted : nat = 1_000_000
 
 variable admin : address = @tz1Lc2qBKEWCBeDU8npG6zCeCqpmaegRi6Jg
 
+constant urlprefix : string = "https://raw.githubusercontent.com/edukera/completium-dapp-dex/master/public/icons/"
+
 asset token {
   id       : string;      /* token label identifier  */
   addr     : address;     /* FA 1.2 contract address */
@@ -14,6 +16,16 @@ asset token {
   poolvalue: nat = 0;     /* XTZ value in pool       */
   totalqty : nat = 0;     /* total number of tokens  */
   totallqt : nat = 0;     /* total LTQ tokens        */
+} initialized by {
+  { "XPA"; @KT1MePDQK3VQooqSEwN3sN1WqyMiiGBKGkNX; "Paris"         ; concat(urlprefix,"paris_white.svg")  ; 0; 0; 0 };
+  { "XLD"; @KT1H8JUiFbvEMycCuG5sZfCGHkN7vgfLAs3n; "London"        ; concat(urlprefix,"london_white.svg") ; 0; 0; 0 };
+  { "XNY"; @KT1VZSKpWaQf28GudoZae85nXFMZTS6hw1MH; "New York City" ; concat(urlprefix,"nyc_white.svg")    ; 0; 0; 0 };
+  { "XRO"; @KT1LpxvCD97T85RWkjGMiFgFxiYsmEHE23Sf; "Rome"          ; concat(urlprefix,"rome_white.svg")   ; 0; 0; 0 };
+  { "XTK"; @KT1SVB1EuoD73CWNc6wp3vQRaeiho2GjYa7Q; "Tokyo"         ; concat(urlprefix,"tokyo_white.svg")  ; 0; 0; 0 };
+  { "XAT"; @KT1PocAFBwSNK6UHdDKH97eFCPjxDgSJUUsR; "Athens"        ; concat(urlprefix,"athenes_white.svg"); 0; 0; 0 };
+  { "XMO"; @KT1AKC1T8jGTACDJxyN8WvNZWJyZPYtFx4Vg; "Moscow"        ; concat(urlprefix,"moscow_white.svg") ; 0; 0; 0 };
+  { "XSD"; @KT1E87BM8kauAhVzAFh1K3ob4qY1Yq9vFKen; "Sydney"        ; concat(urlprefix,"sydney_white.svg") ; 0; 0; 0 };
+  { "XRI"; @KT1NkvyqZyfrCFXnxscnMnQ8atxjir1P3qNQ; "Rio de Janeiro"; concat(urlprefix,"rio_white.svg")    ; 0; 0; 0 }
 }
 
 asset liquidity identified by tokenid owner {
