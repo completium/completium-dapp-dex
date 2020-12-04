@@ -11,7 +11,7 @@ const CoinItem = (props) => {
   return (
     <Grid container direction='row' justify="flex-start" alignItems="center" spacing={0}>
       <Grid item xs={1}>
-      <img src={process.env.PUBLIC_URL + "/icons/" + svg} style={{ height: '35px', width: '35px' }}></img>
+      <img src={"https://raw.githubusercontent.com/edukera/completium-dapp-dex/master/public/icons/" + svg} style={{ height: '35px', width: '35px' }}></img>
       </Grid>
       <Grid item xs={2} style={{ paddingLeft: (props.show)?'12px':'24px' }}>
         <Typography style={{ textTransform: 'uppercase' }}>{getCoinLabel(props.name)}</Typography>

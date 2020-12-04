@@ -8,7 +8,7 @@ import MenuItem from '@material-ui/core/MenuItem';
 import FormControl from '@material-ui/core/FormControl';
 import Select from '@material-ui/core/Select';
 import { makeStyles } from '@material-ui/core/styles';
-import { cities, getCoinLabel, getBalanceFor, XTZBalance } from '../settings';
+import { cities, getCoinLabel } from '../settings';
 import { useDexStateContext } from '../dexstate';
 import TextField from '@material-ui/core/TextField';
 import Switch from '@material-ui/core/Switch';
@@ -25,12 +25,20 @@ const useStyles = makeStyles((theme) => ({
   },
 }));
 
+const getBalanceFor = (dexState, coin) => {
+  if (coin in dexState.balances) {
+    return dexState.balances[coin];
+  } else {
+    return '';
+  }
+}
+
 const LeftEx = (props) => {
   const { dexState, setLeftCoin, setLeftAmount, switchMax } = useDexStateContext();
+  const xtzbalance = dexState.balance;
   const classes = useStyles();
   const coin = dexState.left.coin;
-  const xtzbalance = XTZBalance / 1000000;
-  const balance = (coin === 'XTZ')?xtzbalance:getBalanceFor(coin);
+  const balance = (coin === 'XTZ')?xtzbalance:getBalanceFor(dexState,coin);
   const handleChange = (event) => {
     setLeftCoin(event.target.value);
   };
@@ -178,7 +186,7 @@ const Exchange = (props) => {
     if (lcoin === '' || rcoin === '') {
       return true;
     } else {
-      const lbalance = getBalanceFor(lcoin);
+      const lbalance = dexState.balances[lcoin];
       const rbalance = (rcoin === 'XTZ')?dexState.token[lcoin].poolvalue:dexState.token[rcoin].totalqty;
       const sent = (rcoin === 'XTZ')?parseInt(dexState.right.amount)/1000000:dexState.right.amount;
       return (

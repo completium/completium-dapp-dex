@@ -9,12 +9,11 @@ variable admin : address = @tz1Lc2qBKEWCBeDU8npG6zCeCqpmaegRi6Jg
 asset token {
   id       : string;      /* token label identifier  */
   addr     : address;     /* FA 1.2 contract address */
+  name     : string;      /* FA 1.2 name             */
+  iconurl  : string;      /* Icon                    */
   poolvalue: nat = 0;     /* XTZ value in pool       */
   totalqty : nat = 0;     /* total number of tokens  */
   totallqt : nat = 0;     /* total LTQ tokens        */
-} initialized by {
-  {"A"; @KT1MePDQK3VQooqSEwN3sN1WqyMiiGBKGkNX; 0; 0; 0};
-  {"B"; @KT1H8JUiFbvEMycCuG5sZfCGHkN7vgfLAs3n; 0; 0; 0}
 }
 
 asset liquidity identified by tokenid owner {
@@ -23,9 +22,15 @@ asset liquidity identified by tokenid owner {
   lqt      : nat = 0;     /* LQT quantity            */
 }
 
-entry registertoken (i : string, a : address) {
+entry registertoken (i : string, a : address, n : string, u : string) {
   called by admin
-  effect { token.add({ id = i; addr = a }); }
+  effect {
+    token.addupdate(i, { addr = a; name = n; iconurl = u }); }
+}
+
+entry deletetoken (i : string) {
+  called by admin
+  effect { token.remove(i) }
 }
 
 function compute_exchanged(aA : nat, qA : nat, qB : nat) : rational {

@@ -8,7 +8,7 @@ import MenuItem from '@material-ui/core/MenuItem';
 import FormControl from '@material-ui/core/FormControl';
 import Select from '@material-ui/core/Select';
 import { makeStyles } from '@material-ui/core/styles';
-import { cities, getBalanceFor, getCoinLabel, XTZBalance } from '../settings';
+import { cities, getCoinLabel } from '../settings';
 import { useDexStateContext } from '../dexstate';
 import TextField from '@material-ui/core/TextField';
 import Switch from '@material-ui/core/Switch';
@@ -28,22 +28,27 @@ const useStyles = makeStyles((theme) => ({
   },
 }));
 
+const getBalanceFor = (dexState, coin) => {
+  if (coin in dexState.balances) {
+    return dexState.balances[coin];
+  } else {
+    return '';
+  }
+}
+
 const LeftEx = (props) => {
   const { dexState, setProviderAmount, setProviderXTZAmount, switchProviderMax, switchProviderXTZMax, isPoolEmpty } = useDexStateContext();
   const theme = useTheme();
   const svg = 'tezos' + '_' + ((theme.palette.type === 'dark')?'white':'black') + '.svg';
   const classes = useStyles();
   const coin = dexState.provider.coin;
-  const balance = getBalanceFor(coin);
-  const xtzbalance = XTZBalance / 1000000;
-  const handleChange = (event) => {
-
-  };
+  const balance = getBalanceFor(dexState,coin);
+  const xtzbalance = dexState.balance;
   const handleMaxChange = (event) => {
     switchProviderMax(balance);
   }
   const handleMaxXTZChange = (event) => {
-    switchProviderXTZMax(XTZBalance);
+    switchProviderXTZMax(xtzbalance);
   }
   const handleAmountChange = (event) => {
     setProviderAmount(event.target.value);

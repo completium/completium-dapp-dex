@@ -38,9 +38,6 @@ export const getCoinLabel = (city) => {
   }
 }
 
-export const XTZBalance = 18567580000;
-export const address = "tz1";
-
 export const getBalanceFor = (coin) => {
   const balance = {
   'XLD' : '3450',

@@ -1,6 +1,6 @@
 import './App.css';
 import React, { useState } from 'react';
-import { DAppProvider, useConnect } from './dapp.js';
+import { DAppProvider, useConnect, useAccountPkh, useReady } from './dapp.js';
 import { DexProvider, useDexStateContext } from './dexstate';
 import { appName, appTitle, network } from './settings';
 import { createMuiTheme, ThemeProvider } from '@material-ui/core/styles';
@@ -14,6 +14,9 @@ import Tab from '@material-ui/core/Tab';
 import Exchange from './components/Dex';
 import Provider from './components/Provider';
 import Redeemer from './components/Redeemer';
+import { TezosToolkit } from '@taquito/taquito';
+
+const Tezos = new TezosToolkit('https://'+network+'-tezos.giganode.io');
 
 function App() {
   return (
@@ -38,7 +41,11 @@ const getComponent = (value) => {
 
 const PageRouter = () => {
   const [viewSnack, setViewSnack] = useState(false);
+  const [computeBalance, setComputeBalance] = useState(false);
   const [value, setValue] = React.useState(0);
+  const account = useAccountPkh();
+  const ready = useReady();
+  const { setBalance } = useDexStateContext();
 
   const handleChange = (event, newValue) => {
     setValue(newValue);
@@ -48,6 +55,7 @@ const PageRouter = () => {
   const handleConnect = React.useCallback(async () => {
     try {
       await connect(network);
+      setComputeBalance(true);
     } catch (err) {
       alert(err.message);
     };
@@ -72,6 +80,13 @@ const PageRouter = () => {
   }
   const closeSnack = () => {
     setViewSnack(false);
+  }
+  if (ready && computeBalance) {
+    Tezos.tz
+      .getBalance(account)
+      .then((balance) => { setBalance(balance / 1000000) })
+      .catch((error) => console.log(JSON.stringify(error)));
+    setComputeBalance(false);
   }
   return (
     <ThemeProvider theme={theme}>
