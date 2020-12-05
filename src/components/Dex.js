@@ -18,7 +18,7 @@ import { useTezos, useAccountPkh } from '../dapp';
 import { dexContract, network } from '../settings';
 import { OpKind, TezosToolkit } from '@taquito/taquito';
 
-/* const Tezos = new TezosToolkit('https://'+network+'-tezos.giganode.io'); */
+const Tezos = new TezosToolkit('https://'+network+'-tezos.giganode.io');
 
 const useStyles = makeStyles((theme) => ({
   formControl: {
@@ -239,7 +239,7 @@ const Exchange = (props) => {
         props.closeSnack();
         loadDexTokens();
         forceRetrieveTokenBalance(rcoin);
-        tezos.tz
+        Tezos.tz
         .getBalance(account)
         .then((balance) => { setBalance(balance / 1000000) })
         .catch((error) => console.log(JSON.stringify(error)));
@@ -265,7 +265,7 @@ const Exchange = (props) => {
         if (rcoin != 'XTZ') {
           forceRetrieveTokenBalance(rcoin);
         }
-        tezos.tz
+        Tezos.tz
         .getBalance(account)
         .then((balance) => { setBalance(balance / 1000000) })
         .catch((error) => console.log(JSON.stringify(error)));
