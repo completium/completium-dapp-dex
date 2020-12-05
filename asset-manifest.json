@@ -1,0 +1,22 @@
+{
+  "files": {
+    "main.css": "/completium-dapp-dex/static/css/main.9c72e34c.chunk.css",
+    "main.js": "/completium-dapp-dex/static/js/main.cf695039.chunk.js",
+    "main.js.map": "/completium-dapp-dex/static/js/main.cf695039.chunk.js.map",
+    "runtime-main.js": "/completium-dapp-dex/static/js/runtime-main.920c3a06.js",
+    "runtime-main.js.map": "/completium-dapp-dex/static/js/runtime-main.920c3a06.js.map",
+    "static/js/2.cf7d823e.chunk.js": "/completium-dapp-dex/static/js/2.cf7d823e.chunk.js",
+    "static/js/2.cf7d823e.chunk.js.map": "/completium-dapp-dex/static/js/2.cf7d823e.chunk.js.map",
+    "static/js/3.791d9468.chunk.js": "/completium-dapp-dex/static/js/3.791d9468.chunk.js",
+    "static/js/3.791d9468.chunk.js.map": "/completium-dapp-dex/static/js/3.791d9468.chunk.js.map",
+    "index.html": "/completium-dapp-dex/index.html",
+    "static/css/main.9c72e34c.chunk.css.map": "/completium-dapp-dex/static/css/main.9c72e34c.chunk.css.map",
+    "static/js/2.cf7d823e.chunk.js.LICENSE.txt": "/completium-dapp-dex/static/js/2.cf7d823e.chunk.js.LICENSE.txt"
+  },
+  "entrypoints": [
+    "static/js/runtime-main.920c3a06.js",
+    "static/js/2.cf7d823e.chunk.js",
+    "static/css/main.9c72e34c.chunk.css",
+    "static/js/main.cf695039.chunk.js"
+  ]
+}
