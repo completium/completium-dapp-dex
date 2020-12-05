@@ -4,7 +4,7 @@ export const network = "delphinet"
 
 export const appName = "CityDexCorp."
 
-export const dexContract = 'KT19nPkELsL4Ha9XrmbcyXHs9QxkUQmiwRWD'
+export const dexContract = 'KT1J48AfBi8NwNaFQM1AXTvordRgSRJxK313'
 
 export const cities = [ 'tezos', 'paris', 'london', 'moscow', 'nyc', 'tokyo', 'sydney', 'athenes', 'rio', 'rome' ];
 

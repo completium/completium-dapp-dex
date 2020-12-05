@@ -14,9 +14,11 @@ import TextField from '@material-ui/core/TextField';
 import Switch from '@material-ui/core/Switch';
 import CoinItem from './CoinItem';
 import VerticialDivider from './VerticalDivider';
-import { useTezos } from '../dapp';
-import { dexContract } from '../settings';
-import { OpKind } from '@taquito/taquito';
+import { useTezos, useAccountPkh } from '../dapp';
+import { dexContract, network } from '../settings';
+import { OpKind, TezosToolkit } from '@taquito/taquito';
+
+/* const Tezos = new TezosToolkit('https://'+network+'-tezos.giganode.io'); */
 
 const useStyles = makeStyles((theme) => ({
   formControl: {
@@ -51,7 +53,7 @@ const LeftEx = (props) => {
   const handleAmountChange = (event) => {
     setLeftAmount(event.target.value);
   }
-  const cities = ['XTZ'].concat(Object.keys(dexState.token));
+  const cities = ['XTZ'].concat(Object.keys(dexState.token)).filter(c => { return (c === 'XTZ' || dexState.token[c].totalqty > 0)});
   return (
     <Grid container direction='row' spacing={4} style={{ paddingLeft: '24px' }}>
       <Grid item xs={12}>
@@ -124,15 +126,23 @@ const RightEx = (props) => {
   const coin = dexState.right.coin;
   const sent = (coin === 'XTZ')?parseInt(dexState.right.amount)/1000000:dexState.right.amount;
   var exbalance = 0;
-  if (dexState.left.coin !== '' && coin !== '') {
+  if (coin !== '') {
     if (coin === 'XTZ') {
       exbalance = dexState.token[dexState.left.coin].poolvalue / 1000000;
     } else {
       exbalance = dexState.token[coin].totalqty;
     }
   };
+  var balance = '';
+  if (coin !== '') {
+    if (coin === 'XTZ') {
+      balance = dexState.balance;
+    } else {
+      balance = getBalanceFor(dexState,coin);
+    }
+  }
   var fee = (coin === 'XTZ' && dexState.right.fee !== '')?parseInt(dexState.right.fee)/1000000:dexState.right.fee;
-  const cities = ['XTZ'].concat(Object.keys(dexState.token));
+  const cities = ['XTZ'].concat(Object.keys(dexState.token)).filter(c => { return (c === 'XTZ' || dexState.token[c].totalqty > 0)});
   return (
     <Grid container direction='row' spacing={4} style={{ paddingRight: '24px' }}>
       <Grid item xs={12}>
@@ -159,10 +169,13 @@ const RightEx = (props) => {
           </Select>
         </FormControl>
       </Grid>
-      <Grid item xs={12} style={{ paddingTop: 0 }}>
-        <Typography color='textSecondary'>Exchange balance: {exbalance} {coin}</Typography>
+      <Grid item xs={12} style={{ paddingTop: 0, paddingBottom: 20 }}>
+        <Typography color='textSecondary' variant='caption'>Exchange balance: {exbalance} {coin}</Typography>
       </Grid>
-      <Grid item xs={12} style={{ paddingBottom: '6px', paddingTop: '0px'}}>
+      <Grid item xs={6} style={{ paddingBottom: '6px', paddingTop: '0px'}}>
+      <Typography color='textSecondary' style={{ paddingLeft: '0' }}>Balance: {balance} {coin}</Typography>
+      </Grid>
+      <Grid item xs={6} style={{ paddingBottom: '6px', paddingTop: '0px'}}>
       <Typography color='textSecondary' style={{ paddingLeft: '0' }}>Fee: {fee} {coin}</Typography>
       </Grid>
       <Grid item xs={12} style={{ paddingTop: 0, paddingLeft: 0, paddingRight: '34px' }}>
@@ -185,8 +198,9 @@ const RightEx = (props) => {
 
 const Exchange = (props) => {
   const [initialized, setInititialized] = useState(false);
-  const { dexState, loadDexTokens } = useDexStateContext();
+  const { dexState, loadDexTokens, resetDexCoins, forceRetrieveTokenBalance, setBalance } = useDexStateContext();
   const tezos = useTezos();
+  const account = useAccountPkh();
   const cannotExchange = () => {
     const lcoin = dexState.left.coin;
     const rcoin = dexState.right.coin;
@@ -220,11 +234,17 @@ const Exchange = (props) => {
         dexState.right.coin,
         dexState.right.amount).send({ amount: dexState.left.amount });
       props.openSnack();
+      resetDexCoins();
       op.receipt().then(() => {
         props.closeSnack();
+        loadDexTokens();
+        forceRetrieveTokenBalance(rcoin);
+        tezos.tz
+        .getBalance(account)
+        .then((balance) => { setBalance(balance / 1000000) })
+        .catch((error) => console.log(JSON.stringify(error)));
       })
     } else {
-      const m = (dexState.right.coin === 'XTZ')?1000000:1;
       const fa12 = await tezos.wallet.at(dexState.token[lcoin].addr);
       const fa12params = fa12.methods.approve(dexContract,dexState.left.amount).toTransferParams();
       fa12params.kind = OpKind.TRANSACTION;
@@ -232,13 +252,23 @@ const Exchange = (props) => {
         dexState.left.coin,
         dexState.left.amount,
         dexState.right.coin,
-        dexState.right.amount * m).toTransferParams();
+        dexState.right.amount).toTransferParams();
       dexparams.kind = OpKind.TRANSACTION;
       const batch = await tezos.wallet.batch([fa12params, dexparams]);
       const op = await batch.send();
       props.openSnack();
+      resetDexCoins();
       op.receipt().then(() => {
-          props.closeSnack();
+        props.closeSnack();
+        loadDexTokens();
+        forceRetrieveTokenBalance(lcoin);
+        if (rcoin != 'XTZ') {
+          forceRetrieveTokenBalance(rcoin);
+        }
+        tezos.tz
+        .getBalance(account)
+        .then((balance) => { setBalance(balance / 1000000) })
+        .catch((error) => console.log(JSON.stringify(error)));
       })
     }
   }

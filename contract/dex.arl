@@ -145,13 +145,16 @@ entry removeLiquidity(qL : nat, tA : string) {
   }
   effect {
     var lqtratio = qL / token[tA].totallqt;
-    transfer (lqtratio * token[tA].poolvalue * 1utz) to caller;
+    var xtzout = abs(floor(lqtratio * token[tA].poolvalue));
+    transfer (xtzout * 1utz) to caller;
     match_option entrypoint<(address * address * nat)>("%transfer",token[tA].addr) with
     | some(transfer_src) ->
       var qty = abs(floor(lqtratio * token[tA].totalqty));
-      transfer 0tz to entry transfer_src((selfaddress, caller, qty))
+      transfer 0tz to entry transfer_src((selfaddress, caller, qty));
+      liquidity.addupdate((tA, caller), { lqt -= qL });
+      token.update(tA, { poolvalue -= xtzout; totalqty -= qty; totallqt -= qL })
     | none -> fail("INVALID_DST_ENTRY")
-   end;
+    end;
   }
 
 }

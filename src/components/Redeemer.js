@@ -16,6 +16,11 @@ import VerticialDivider from './VerticalDivider';
 import InputAdornment from '@material-ui/core/InputAdornment';
 import { useTheme } from '@material-ui/core/styles';
 import PlusDivider from './PlusDivider';
+import { TezosToolkit } from '@taquito/taquito';
+import { network, dexContract } from '../settings';
+import { useTezos, useAccountPkh, useReady } from '../dapp';
+
+const Tezos = new TezosToolkit('https://'+network+'-tezos.giganode.io');
 
 const useStyles = makeStyles((theme) => ({
   formControl: {
@@ -148,73 +153,95 @@ const RightEx = (props) => {
 }
 
 const Redeemer = (props) => {
-    const { dexState, setRedeemerCoin } = useDexStateContext();
-    const classes = useStyles();
-    const coin = dexState.redeemer.coin;
-    const handleChange = (event) => {
+  const { dexState, setRedeemerCoin, resetRedeemer, loadDexTokens, loadLiquidity, setBalance } = useDexStateContext();
+  const classes = useStyles();
+  const account = useAccountPkh();
+  const tezos = useTezos();
+  const ready = useReady();
+  const coin = dexState.redeemer.coin;
+  const handleChange = (event) => {
       setRedeemerCoin(event.target.value);
-    };
-    const cities = Object.keys(dexState.token);
-    return (
-      <Paper style={{ marginTop: '8px', minWidth: '1000px' }}>
-        <Grid container direction='row' spacing={2} alignItems="center">
-          <Grid item xs={3} style={{ marginLeft: '24px', marginTop: '12px' }}>
-            <FormControl variant="outlined" className={classes.formControl}>
-            <InputLabel color='secondary' id="demo-simple-select-outlined-label">Crypto asset pool</InputLabel>
-            <Select
-              color='secondary'
-              labelId="demo-simple-select-outlined-label"
-              id="demo-simple-select-outlined"
-              value={coin}
-              onChange={handleChange}
-              label="Crypto asset pool"
-              labelWidth='200'
-            >
-              <MenuItem value="">
-                <em>None</em>
-              </MenuItem>
-              { cities.map(city =>
-                <MenuItem value={city}><CoinItem name={city} show={false}/></MenuItem>
-              )}
-            </Select>
-            </FormControl>
-          </Grid>
-          <Grid item xs={5} style={{ marginLeft: '24px', marginTop: '12px' }}>
-            <Paper variant="outlined" disableElevation>
-              <Grid container direction='row' alignItems="center" spacing={3} style={{ padding: '13px', paddingLeft: '34px' }}>
-                <Grid item xs={6}>
-                  <Typography color='textSecondary'>Pool Token balance:</Typography>
-                  <Typography> {(coin !== '')?dexState.token[coin].totalqty:''} {coin}</Typography>
-                </Grid>
-                <Grid item xs={5}>
-                  <Typography color='textSecondary'>Pool XTZ balance:</Typography>
-                  <Typography> {(coin !== '')?dexState.token[coin].poolvalue / 1000000 + ' XTZ':''}</Typography>
-                </Grid>
+  };
+  async function handleRedeem() {
+    const dex = await tezos.wallet.at(dexContract);
+    const op = await dex.methods.removeLiquidity(coin,dexState.redeemer.amount).send();
+    props.openSnack();
+    resetRedeemer();
+    op.receipt().then(() => {
+        props.closeSnack();
+        loadDexTokens();
+        loadLiquidity();
+        Tezos.tz
+        .getBalance(account)
+        .then((balance) => { setBalance(balance / 1000000) })
+        .catch((error) => console.log(JSON.stringify(error)));
+    })
+  };
+  const cities = Object.keys(dexState.token);
+  return (
+    <Paper style={{ marginTop: '8px', minWidth: '1000px' }}>
+      <Grid container direction='row' spacing={2} alignItems="center">
+        <Grid item xs={3} style={{ marginLeft: '24px', marginTop: '12px' }}>
+          <FormControl variant="outlined" className={classes.formControl}>
+          <InputLabel color='secondary' id="demo-simple-select-outlined-label">Crypto asset pool</InputLabel>
+          <Select
+            color='secondary'
+            labelId="demo-simple-select-outlined-label"
+            id="demo-simple-select-outlined"
+            value={coin}
+            onChange={handleChange}
+            label="Crypto asset pool"
+            labelWidth='200'
+          >
+            <MenuItem value="">
+              <em>None</em>
+            </MenuItem>
+            { cities.map(city =>
+              <MenuItem value={city}><CoinItem name={city} show={false}/></MenuItem>
+            )}
+          </Select>
+          </FormControl>
+        </Grid>
+        <Grid item xs={6} style={{ marginLeft: '24px', marginTop: '12px' }}>
+          <Paper variant="outlined" disableElevation>
+            <Grid container direction='row' alignItems="center" spacing={3} style={{ padding: '13px', paddingLeft: '34px' }}>
+              <Grid item xs={4}>
+                <Typography color='textSecondary'>Pool Token balance:</Typography>
+                <Typography> {(coin !== '')?dexState.token[coin].totalqty:''} {coin}</Typography>
               </Grid>
-            </Paper>
-          </Grid>
-          <Grid item xs={12}>
-            <Grid container direction='row' style={{ width: '100%' }}>
-              <Grid item style={{ width: '45%' }}>
-                <RightEx/>
+              <Grid item xs={4}>
+                <Typography color='textSecondary'>Pool XTZ balance:</Typography>
+                <Typography> {(coin !== '')?dexState.token[coin].poolvalue / 1000000 + ' XTZ':''}</Typography>
               </Grid>
-              <Grid item style={{ textAlign: '-webkit-center', width: '10%' }}>
-                <VerticialDivider></VerticialDivider>
+              <Grid item xs={4}>
+                <Typography color='textSecondary'>Total Liquidity Tokens:</Typography>
+                <Typography> {(coin !== '')?dexState.token[coin].totallqt + ' LQT':''}</Typography>
               </Grid>
-              <Grid item style={{ width: '45%' }}>
-                <LeftEx/>
             </Grid>
+          </Paper>
+        </Grid>
+        <Grid item xs={12}>
+          <Grid container direction='row' style={{ width: '100%' }}>
+            <Grid item style={{ width: '45%' }}>
+              <RightEx/>
+            </Grid>
+            <Grid item style={{ textAlign: '-webkit-center', width: '10%' }}>
+              <VerticialDivider></VerticialDivider>
+            </Grid>
+            <Grid item style={{ width: '45%' }}>
+              <LeftEx/>
           </Grid>
         </Grid>
-          <Grid item xs={12}>
-            <Divider></Divider>
-          </Grid>
-          <Grid item xs={12} style={{ textAlign: 'right', paddingRight : 24, paddingBottom : 16 }}>
-            <Button disabled={dexState.redeemer.amount === ''} variant='contained' color='secondary' disableElevation>redeem liquidiy</Button>
-          </Grid>
+      </Grid>
+        <Grid item xs={12}>
+          <Divider></Divider>
         </Grid>
-      </Paper>
-    )
+        <Grid item xs={12} style={{ textAlign: 'right', paddingRight : 24, paddingBottom : 16 }}>
+          <Button onClick={handleRedeem} disabled={!ready || dexState.redeemer.amount === ''} variant='contained' color='secondary' disableElevation>redeem liquidiy</Button>
+        </Grid>
+      </Grid>
+    </Paper>
+  )
   }
 
   export default Redeemer;

@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import constate from 'constate';
 import { useAccountPkh, useReady } from './dapp';
-import { getBalanceFor, network, dexContract } from './settings';
+import { network, dexContract } from './settings';
 import { TezosToolkit } from '@taquito/taquito';
 
 const Tezos = new TezosToolkit('https://'+network+'-tezos.giganode.io');
@@ -72,14 +72,8 @@ export function useDexState() {
         });
         console.log('loaded liquidity:', liquidity);
         setDexState(state => { return {
-          balance : state.balance,
-          balances : state.balances,
-          token: state.token,
-          left: state.left,
-          right: state.right,
+          ...state,
           liquidity: liquidity,
-          provider: state.provider,
-          redeemer: state.redeemer
         }})
       })})
       .catch(error => console.log(`Error: ${JSON.stringify(error, null, 2)}`));
@@ -96,27 +90,16 @@ export function useDexState() {
             name: l.name,
             iconurl: l.iconurl,
             poolvalue: l.poolvalue.toString(),
-            totalqty: l.totalqty.toString()
+            totalqty: l.totalqty.toString(),
+            totallqt: l.totallqt.toString()
           }
         });
         console.log('loaded tokens:', token);
-        var liquidity = {};
-        s.liquidity.forEach((l,k,m) => {
-          /* {0: 'XPA', 1: 'tz1Lc2qBKEWCBeDU8npG6zCeCqpmaegRi6Jg'} */
-          if (k[1] === account) {
-            liquidity[k[0]] = l.toString()
-          }
-        });
-        setDexState({
-          balance : dexState.balance,
-          balances : dexState.balances,
-          token: token,
-          left: dexState.left,
-          right: dexState.right,
-          liquidity: dexState.liquidity,
-          provider: dexState.provider,
-          redeemer: dexState.redeemer
-        })
+        setDexState(state => {
+          return {
+            ...state,
+            token: token,
+        }})
       })})
       .catch(error => console.log(`Error: ${JSON.stringify(error, null, 2)}`));
   }
@@ -149,34 +132,28 @@ export function useDexState() {
       var aF = 0;
       if (tA === 'XTZ') {
         aA = aA * 1000000;
-        qA = parseInt(dexState.token[tB].poolvalue);
-        qB = parseInt(dexState.token[tB].totalqty);
+        qA = parseInt(state.token[tB].poolvalue);
+        qB = parseInt(state.token[tB].totalqty);
         aB = Math.floor(computeAmount(aA,qA,qB,fee));
         aF = computeFee(aA,qA,qB,fee);
       } else if (tB === 'XTZ') {
-        qA = parseInt(dexState.token[tA].totalqty);
-        qB = parseInt(dexState.token[tA].poolvalue);
+        qA = parseInt(state.token[tA].totalqty);
+        qB = parseInt(state.token[tA].poolvalue);
         aB = Math.floor(computeAmount(aA,qA,qB,fee));
         aF = computeFee(aA,qA,qB,fee);
       } else {
-        qA   = parseInt(dexState.token[tA].totalqty);
-        const qTA  = parseInt(dexState.token[tA].poolvalue);
-        const qTB  = parseInt(dexState.token[tB].poolvalue);
-        qB   = parseInt(dexState.token[tB].totalqty);
+        qA   = parseInt(state.token[tA].totalqty);
+        const qTA  = parseInt(state.token[tA].poolvalue);
+        const qTB  = parseInt(state.token[tB].poolvalue);
+        qB   = parseInt(state.token[tB].totalqty);
         aB   = Math.floor(computeTok2TokAmount(aA,qA,qB,fee,qTA,qTB));
         aF   = computeTok2TokFee(aA,qA,qB,fee,qTA,qTB);
       };
       console.log(`aB: ${aB}`);
       console.log(`aF: ${aF}`);
       return {
-        balance : dexState.balance,
-        balances : dexState.balances,
-        token: dexState.token,
-        left: state.left,
+        ...state,
         right: { coin: state.right.coin, amount : aB, fee : aF },
-        liquidity: dexState.liquidity,
-        provider: dexState.provider,
-        redeemer: dexState.redeemer,
       }
     }
     else return state;
@@ -197,12 +174,7 @@ export function useDexState() {
         xlq = 1000000;
       };
       return {
-        balance : dexState.balance,
-        balances : dexState.balances,
-        token: dexState.token,
-        left:  dexState.left,
-        right: dexState.right,
-        liquidity: dexState.liquidity,
+        ...state,
         provider: {
           coin:   state.provider.coin,
           amount: state.provider.amount,
@@ -211,7 +183,6 @@ export function useDexState() {
           maxxtzb: state.provider.maxxtzb,
           liqtoken: xlq
         },
-        redeemer: dexState.redeemer,
       }
     } else {
       var tA = '';
@@ -223,17 +194,12 @@ export function useDexState() {
       if (state.provider.amount !== '') {
         tA = state.provider.coin;
         aA = state.provider.amount;
-        qA = parseInt(dexState.token[tA].totalqty);
-        qB = parseInt(dexState.token[tA].poolvalue);
+        qA = parseInt(state.token[tA].totalqty);
+        qB = parseInt(state.token[tA].poolvalue);
         aB = new Intl.NumberFormat('en-IN', { maximumSignificantDigits: 6 }).format(computeAmount(aA, qA, qB, 0) / 1000000);
-        const xlq = Math.floor(dexState.token[tA].totallqt * aB / dexState.token[tA].poolvalue);
+        const xlq = Math.floor(state.token[tA].totallqt * aB * 1000000 / state.token[tA].poolvalue);
         return {
-          balance : dexState.balance,
-          balances : dexState.balances,
-          token: dexState.token,
-          left:  dexState.left,
-          right: dexState.right,
-          liquidity: dexState.liquidity,
+          ...state,
           provider: {
             coin:   state.provider.coin,
             amount: state.provider.amount,
@@ -242,24 +208,18 @@ export function useDexState() {
             maxxtzb: state.provider.maxxtzb,
             liqtoken: xlq
           },
-          redeemer: dexState.redeemer,
         }
       } else if (state.provider.xtzamount !== '') {
         tB = state.provider.coin;
         aA = parseFloat(state.provider.xtzamount) * 1000000;
         console.log(`aA: ${aA}`);
         console.log(`xtzamount: ${state.provider.xtzamount}`);
-        qA = parseInt(dexState.token[tB].poolvalue);
-        qB = parseInt(dexState.token[tB].totalqty);
+        qA = parseInt(state.token[tB].poolvalue);
+        qB = parseInt(state.token[tB].totalqty);
         aB = Math.floor(computeAmount(aA,qA,qB,0));
-        const xlq = Math.floor(dexState.token[tB].totallqt * parseInt(state.provider.xtzamount) / dexState.token[tB].poolvalue);
+        const xlq = Math.floor(state.token[tB].totallqt * parseInt(state.provider.xtzamount) / state.token[tB].poolvalue);
         return {
-          balance : dexState.balance,
-          balances : dexState.balances,
-          token: dexState.token,
-          left:  dexState.left,
-          right: dexState.right,
-          liquidity: dexState.liquidity,
+          ...state,
           provider: {
             coin:   state.provider.coin,
             amount: aB,
@@ -268,7 +228,6 @@ export function useDexState() {
             maxxtzb: state.provider.maxxtzb,
             liqtoken: xlq
           },
-          redeemer: dexState.redeemer,
         }
       } else {
         return state;
@@ -279,22 +238,16 @@ export function useDexState() {
     const liqamount = state.redeemer.liqtoken;
     const coin = state.redeemer.coin;
     if (liqamount !== '' && coin !== '') {
-      const poolvalue = dexState.token[coin].poolvalue;
-      const totalqty = dexState.token[coin].totalqty;
-      const totallqt = dexState.token[coin].totallqt;
+      const poolvalue = state.token[coin].poolvalue;
+      const totalqty = state.token[coin].totalqty;
+      const totallqt = state.token[coin].totallqt;
       const ratio = liqamount / totallqt;
       const amount    = Math.floor(ratio * totalqty);
       const xtzamount = new Intl.NumberFormat({ maximumSignificantDigits: 6 }).format(ratio * poolvalue / 1000000);
       return {
-        balance : dexState.balance,
-        balances : dexState.balances,
-        token: dexState.token,
-        left:  dexState.left,
-        right: dexState.right,
-        liquidity: dexState.liquidity,
-        provider: dexState.provider,
+        ...state,
         redeemer: {
-          coin: dexState.redeemer.coin,
+          coin: state.redeemer.coin,
           liqtoken: liqamount,
           max: state.redeemer.max,
           amount: amount,
@@ -310,270 +263,232 @@ export function useDexState() {
     var dsttotalqty = dexState.token[city].poolvalue;
     return computeAmount(1000000,srctotalqty,dsttotalqty,fee) / 1000000;
   }
-  const retrieveTokenBalance = (state, coin) => {
-    if (ready && coin !== '' && coin !== 'XTZ' && !(coin in state.balances)) {
-      const address = state.token[coin].addr;
+  const forceRetrieveTokenBalance = (coin) => {
+    const address = dexState.token[coin].addr;
       Tezos.contract.at(address)
       .then( myContract => {
         return myContract.storage()
       .then ( myStorage => {
         //When called on a map, the get method returns the value directly
         myStorage['ledger'].get(account).then(value => {
-          var balances = state.balances;
-          console.log(`value: ${value.toString()}`);
-          balances[coin] = value.toString();
-          setDexState({
-            balance : state.balance,
-            balances : balances,
-            token: state.token,
-            left: state.left,
-            right: state.right,
-            liquidity: state.liquidity,
-            pool: state.pool,
-            provider: state.provider,
-            redeemer: state.redeemer,
-          })
+          setDexState(state => {
+            var balances = state.balances;
+            console.log(`value: ${value.toString()}`);
+            balances[coin] = value.toString();
+            return {
+              ...state,
+              balances : balances,
+            }
+          });
         });
       })})
       .catch(error => console.log(`Error: ${JSON.stringify(error, null, 2)}`));
+  }
+  const retrieveTokenBalance = (coin) => {
+    if (ready && coin !== '' && coin !== 'XTZ' && !(coin in dexState.balances)) {
+      forceRetrieveTokenBalance(coin);
     }
   }
-  const setLeftCoin = (coin) => {
-    const state = {
-      balance : dexState.balance,
-      balances : dexState.balances,
-      token: dexState.token,
+  const setLeftCoin = (coin) => { setDexState(state => {
+    return computeAmounts({
+      ...state,
       left: { coin: coin, amount : '', max: false },
-      right: { coin: dexState.right.coin, amount : '', fee : '' },
-      liquidity: dexState.liquidity,
-      pool: dexState.pool,
-      provider: dexState.provider,
-      redeemer: dexState.redeemer,
-    };
-    setDexState(state);
-    retrieveTokenBalance(state,coin);
+      right: { coin: state.right.coin, amount : '', fee : '' },
+    })});
+    retrieveTokenBalance(coin);
   };
-  const setRightCoin = (coin) => { setDexState(computeAmounts({
-    balance : dexState.balance,
-    balances : dexState.balances,
-    token: dexState.token,
-    left : dexState.left,
-    right : { coin: coin, amount : '', fee : '' },
-    liquidity: dexState.liquidity,
-    pool: dexState.pool,
-    provider: dexState.provider,
-    redeemer: dexState.redeemer,
-  }))};
+  const setRightCoin = (coin) => { setDexState(state => {
+    return computeAmounts({
+      ...state,
+      right : { coin: coin, amount : '', fee : '' },
+    })});
+    retrieveTokenBalance(coin);
+  };
+  const resetDexCoins = () => {
+    setDexState(state => {
+      return {
+        ...state,
+        left: { ...state.left, amount : '', max: false },
+        right : { ...state.right, amount : '', fee : '' },
+      }
+    });
+  }
+  const resetProvider = () => {
+    setDexState(state => {
+      return {
+        ...state,
+        provider : {
+          ...state.provider,
+          amount: '',
+          maxb: false,
+          xtzamount: '',
+          maxxtzb: false,
+          liqtoken: ''
+        },
+      }
+    });
+  }
+  const resetRedeemer = () => {
+    setDexState(state => {
+      return {
+        ...state,
+        redeemer : {
+          ...state.redeemer,
+          amount: '',
+          xtzamount: '',
+          liqtoken: '',
+          max: false,
+          maxxtzb: false,
+        },
+      }
+    });
+  }
   const setLeftAmount = (amount) => {
     if (isNaN(amount)) {
-      setDexState({
-        balance : dexState.balance,
-        balances : dexState.balances,
-        token: dexState.token,
-        left : { coin: dexState.left.coin, amount : '', max: dexState.left.max },
-        right : { coin: dexState.right.coin, amount : '', fee : '' },
-        liquidity: dexState.liquidity,
-        pool: dexState.pool,
-        provider: dexState.provider,
-        redeemer: dexState.redeemer,
-      })
+      setDexState(state => {
+        return {
+          ...state,
+          left : { coin: state.left.coin, amount : '', max: state.left.max },
+          right : { coin: state.right.coin, amount : '', fee : '' },
+      }})
     } else {
-      setDexState (computeAmounts({
-        balance : dexState.balance,
-        balances : dexState.balances,
-        token: dexState.token,
-        left : { coin: dexState.left.coin, amount : (parseFloat(amount)>0)?amount:'0', max: dexState.left.max },
-        right : { coin: dexState.right.coin, amount : '', fee : '' },
-        liquidity: dexState.liquidity,
-        pool: dexState.pool,
-        provider: dexState.provider,
-        redeemer: dexState.redeemer,
-      }))};
+      setDexState (state => {
+        return computeAmounts({
+          ...state,
+          left : { coin: state.left.coin, amount : (parseFloat(amount)>0)?amount:'0', max: state.left.max },
+          right : { coin: state.right.coin, amount : '', fee : '' },
+      })})};
     }
-  const switchMax = (balance) => { setDexState (computeAmounts({
-    balance : dexState.balance,
-    balances : dexState.balances,
-    token: dexState.token,
-    left : { coin: dexState.left.coin, amount : dexState.left.max?'':balance, max: !(dexState.left.max) },
-    right : { coin: dexState.right.coin, amount : '', fee : '' },
-    liquidity: dexState.liquidity,
-    pool: dexState.pool,
-    provider: dexState.provider,
-    redeemer: dexState.redeemer,
-  }))};
+  const switchMax = (balance) => { setDexState (state => {
+    return computeAmounts({
+      ...state,
+      left : { coin: state.left.coin, amount : state.left.max?'':balance, max: !(state.left.max) },
+      right : { coin: state.right.coin, amount : '', fee : '' },
+  })})};
   const setProviderCoin = (coin) => {
-    const state = {
-      balance : dexState.balance,
-      balances : dexState.balances,
-      token: dexState.token,
-      left: dexState.left,
-      right: dexState.right,
-      liquidity: dexState.liquidity,
+    setDexState(state => {
+      return {
+        ...state,
+        provider: {
+          coin: coin,
+          amount: '',
+          maxb: false,
+          xtzamount: '',
+          maxxtzb: false,
+          liqtoken: ''
+        }
+      }
+    });
+    retrieveTokenBalance(coin);
+  };
+  const setProviderAmount = (a) => { setDexState(state => {
+    return computeMintedLQT({  /* todo compute xtzbalance and liqtoken */
+      ...state,
       provider: {
-        coin: coin,
-        amount: '',
+        coin: state.provider.coin,
+        amount: Math.max(0,a),
         maxb: false,
+        xtzamount: (isPoolEmpty(state.provider.coin)?state.provider.xtzamount:''),
+        maxxtzb: false,
+        liqtoken: ''
+      },
+  })})};
+  const setProviderXTZAmount = (a) => {
+    if(isNaN(parseFloat(a)) || a.charAt(a.length - 1) === '.') {
+      setDexState(state => {
+        return {
+          ...state,
+          provider: {
+            coin: state.provider.coin,
+            amount: (isPoolEmpty(state.provider.coin)?state.provider.amount:''),
+            maxb: false,
+            xtzamount: a,
+            maxxtzb: false,
+            liqtoken: ''
+          }
+      }});
+    } else {
+      setDexState(state => {
+        return computeMintedLQT({
+          ...state,
+          provider: {
+            coin: state.provider.coin,
+            amount: (isPoolEmpty(state.provider.coin)?state.provider.amount:''),
+            maxb: false,
+            xtzamount: (parseFloat(a)>0?a:'0'),
+            maxxtzb: false,
+            liqtoken: ''
+          }
+    })})};
+  }
+  const switchProviderMax = (balance) => { setDexState (state => {
+    return computeMintedLQT({
+      ...state,
+      provider: {
+        coin: state.provider.coin,
+        amount : state.provider.maxb?'':balance,
+        maxb: !state.provider.maxb,
         xtzamount: '',
         maxxtzb: false,
         liqtoken: ''
       },
-      redeemer: dexState.redeemer,
-    }
-    setDexState(state);
-    retrieveTokenBalance(state,coin);
-  };
-  const setProviderAmount = (a) => { setDexState(computeMintedLQT({  /* todo compute xtzbalance and liqtoken */
-    balance : dexState.balance,
-    balances : dexState.balances,
-    token: dexState.token,
-    left: dexState.left,
-    right: dexState.right,
-    liquidity: dexState.liquidity,
-    provider: {
-      coin: dexState.provider.coin,
-      amount: Math.max(0,a),
-      maxb: false,
-      xtzamount: (isPoolEmpty(dexState.provider.coin)?dexState.provider.xtzamount:''),
-      maxxtzb: false,
-      liqtoken: ''
-    },
-    redeemer: dexState.redeemer,
-  }))};
-  const setProviderXTZAmount = (a) => {
-    if(isNaN(parseFloat(a)) || a.charAt(a.length - 1) === '.') {
-      setDexState({
-        balance : dexState.balance,
-        balances : dexState.balances,
-        token: dexState.token,
-        left: dexState.left,
-        right: dexState.right,
-        liquidity: dexState.liquidity,
-        provider: {
-          coin: dexState.provider.coin,
-          amount: (isPoolEmpty(dexState.provider.coin)?dexState.provider.amount:''),
-          maxb: false,
-          xtzamount: a,
-          maxxtzb: false,
-          liqtoken: ''
-        },
-      redeemer: dexState.redeemer,
-      });
-    } else {
-      setDexState(computeMintedLQT({
-        balance : dexState.balance,
-        balances : dexState.balances,
-        token: dexState.token,
-        left: dexState.left,
-        right: dexState.right,
-        liquidity: dexState.liquidity,
-        provider: {
-          coin: dexState.provider.coin,
-          amount: (isPoolEmpty(dexState.provider.coin)?dexState.provider.amount:''),
-          maxb: false,
-          xtzamount: (parseFloat(a)>0?a:'0'),
-          maxxtzb: false,
-          liqtoken: ''
-        },
-        redeemer: dexState.redeemer,
-    }))};
-  }
-  const switchProviderMax = (balance) => { setDexState (computeMintedLQT({
-    balance : dexState.balance,
-    balances : dexState.balances,
-    token: dexState.token,
-    left: dexState.left,
-    right: dexState.right,
-    liquidity: dexState.liquidity,
-    provider: {
-      coin: dexState.provider.coin,
-      amount : dexState.provider.maxb?'':balance,
-      maxb: !dexState.provider.maxb,
-      xtzamount: '',
-      maxxtzb: false,
-      liqtoken: ''
-    },
-    redeemer: dexState.redeemer,
-  }))};
-  const switchProviderXTZMax = (balance) => { setDexState (computeMintedLQT({
-    balance : dexState.balance,
-    balances : dexState.balances,
-    token: dexState.token,
-    left: dexState.left,
-    right: dexState.right,
-    liquidity: dexState.liquidity,
-    provider: {
-      coin: dexState.provider.coin,
-      amount : '',
-      maxb: false,
-      xtzamount: dexState.provider.maxxtzb?'':balance,
-      maxxtzb: !dexState.provider.maxxtzb,
-      liqtoken: ''
-    },
-    redeemer: dexState.redeemer,
-  }))};
+  })})};
+  const switchProviderXTZMax = (balance) => { setDexState (state => {
+    return computeMintedLQT({
+      ...state,
+      provider: {
+        coin: state.provider.coin,
+        amount : '',
+        maxb: false,
+        xtzamount: state.provider.maxxtzb?'':balance,
+        maxxtzb: !state.provider.maxxtzb,
+        liqtoken: ''
+      },
+  })})};
   const setRedeemerCoin = (coin) => {
-    const state = {
-      balance : dexState.balance,
-      balances : dexState.balances,
-      token: dexState.token,
-      left: dexState.left,
-      right: dexState.right,
-      liquidity: dexState.liquidity,
-      provider: dexState.provider,
+    setDexState(state => {
+      return {
+        ...state,
+        redeemer: {
+          coin: coin,
+          max: false,
+          liqtoken: '',
+          amount: '',
+          xtzamount: '',
+        }
+    }});
+    retrieveTokenBalance(coin);
+  };
+  const setRedeemerMax = (balance) => {setDexState(state => {
+    return computeRedeemedLQT({
+      ...state,
       redeemer: {
-        coin: coin,
-        max: false,
-        liqtoken: '',
+        coin: state.redeemer.coin,
+        max: !state.redeemer.max,
+        liqtoken: state.redeemer.max?'':balance,
         amount: '',
         xtzamount: '',
       }
-    };
-    setDexState(state);
-    retrieveTokenBalance(state,coin);
-  };
-  const setRedeemerMax = (balance) => {setDexState(computeRedeemedLQT({
-    balance : dexState.balance,
-    balances : dexState.balances,
-    token: dexState.token,
-    left: dexState.left,
-    right: dexState.right,
-    liquidity: dexState.liquidity,
-    provider: dexState.provider,
-    redeemer: {
-      coin: dexState.redeemer.coin,
-      max: !dexState.redeemer.max,
-      liqtoken: dexState.redeemer.max?'':balance,
-      amount: '',
-      xtzamount: '',
-    }
-  }))};
-  const setRedeemerAmount = (value) => {setDexState(computeRedeemedLQT({
-    balance : dexState.balance,
-    balances : dexState.balances,
-    token: dexState.token,
-    left: dexState.left,
-    right: dexState.right,
-    liquidity: dexState.liquidity,
-    provider: dexState.provider,
-    redeemer: {
-      coin: dexState.redeemer.coin,
-      max: dexState.redeemer.max,
-      liqtoken: Math.max(0,value),
-      amount: '',
-      xtzamount: '',
-    }
-  }))};
-  const setBalance = (value) => {setDexState({
-    balance : value,
-    balances : dexState.balances,
-    token: dexState.token,
-    left: dexState.left,
-    right: dexState.right,
-    liquidity: dexState.liquidity,
-    provider: dexState.provider,
-    redeemer: dexState.redeemer
-  })};
-  return { dexState, setDexState, setBalance, isReady, loadDexTokens, loadLiquidity,
+  })})};
+  const setRedeemerAmount = (value) => {setDexState(state => {
+    return computeRedeemedLQT({
+      ...state,
+      redeemer: {
+        coin: state.redeemer.coin,
+        max: state.redeemer.max,
+        liqtoken: Math.max(0,value),
+        amount: '',
+        xtzamount: '',
+      }
+  })})};
+  const setBalance = (value) => {setDexState(state => {
+    return {
+      ...state,
+      balance : value,
+  }})};
+  return { dexState, setDexState,
+    setBalance, isReady, loadDexTokens, loadLiquidity, forceRetrieveTokenBalance,
+    resetDexCoins, resetProvider, resetRedeemer,
     getXTZFor, setLeftCoin, setRightCoin, setLeftAmount, switchMax,
     setProviderCoin, setProviderAmount, setProviderXTZAmount, switchProviderMax, switchProviderXTZMax,
     setRedeemerCoin, setRedeemerMax, setRedeemerAmount };
