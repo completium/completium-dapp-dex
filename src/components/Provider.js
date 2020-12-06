@@ -17,7 +17,7 @@ import VerticialDivider from './VerticalDivider';
 import InputAdornment from '@material-ui/core/InputAdornment';
 import { useTheme } from '@material-ui/core/styles';
 import PlusDivider from './PlusDivider';
-import { useTezos, useAccountPkh } from '../dapp.js';
+import { useTezos, useAccountPkh, useReady } from '../dapp.js';
 import { dexContract, network } from '../settings';
 import { OpKind, TezosToolkit } from '@taquito/taquito';
 
@@ -181,6 +181,7 @@ const Provider = (props) => {
   const { dexState, setProviderCoin, loadDexTokens, loadLiquidity, setBalance, resetProvider } = useDexStateContext();
   const classes = useStyles();
   const tezos = useTezos();
+  const ready = useReady();
   const coin = dexState.provider.coin;
   const handleChange = (event) => {
     setProviderCoin(event.target.value);
@@ -268,7 +269,7 @@ const Provider = (props) => {
           <Divider></Divider>
         </Grid>
         <Grid item xs={12} style={{ textAlign: 'right', paddingRight : 24, paddingBottom : 16 }}>
-          <Button onClick={handleProvide} disabled={dexState.provider.liqtoken === ''} variant='contained' color='secondary' disableElevation>provide liquidiy</Button>
+          <Button onClick={handleProvide} disabled={dexState.provider.liqtoken === '' || !ready} variant='contained' color='secondary' disableElevation>provide liquidiy</Button>
         </Grid>
       </Grid>
     </Paper>

@@ -14,7 +14,7 @@ import TextField from '@material-ui/core/TextField';
 import Switch from '@material-ui/core/Switch';
 import CoinItem from './CoinItem';
 import VerticialDivider from './VerticalDivider';
-import { useTezos, useAccountPkh } from '../dapp';
+import { useTezos, useAccountPkh, useReady } from '../dapp';
 import { dexContract, network } from '../settings';
 import { OpKind, TezosToolkit } from '@taquito/taquito';
 
@@ -201,11 +201,12 @@ const Exchange = (props) => {
   const { dexState, loadDexTokens, resetDexCoins, forceRetrieveTokenBalance, setBalance } = useDexStateContext();
   const tezos = useTezos();
   const account = useAccountPkh();
+  const ready = useReady();
   const cannotExchange = () => {
     const lcoin = dexState.left.coin;
     const rcoin = dexState.right.coin;
     if (lcoin === '' || rcoin === '') {
-      return true;
+      return !ready;
     } else {
       const lbalance = dexState.balances[lcoin];
       const rbalance = (rcoin === 'XTZ')?dexState.token[lcoin].poolvalue:dexState.token[rcoin].totalqty;
@@ -213,7 +214,8 @@ const Exchange = (props) => {
       return (
         dexState.right.amount === '' ||
         parseInt(sent) > parseInt(rbalance)/2 ||
-        parseInt(dexState.left.amount) > parseInt(lbalance)
+        parseInt(dexState.left.amount) > parseInt(lbalance) ||
+        !ready
       );
     }
   }
