@@ -228,50 +228,15 @@ const Exchange = (props) => {
     const rcoin = dexState.right.coin;
     const dex = await tezos.wallet.at(dexContract);
     if (lcoin === 'XTZ') {
-      /* one transaction to dex */
-      const dex = await tezos.wallet.at(dexContract);
-      const op = await dex.methods.exchange(
-        dexState.left.coin,
-        dexState.left.amount * 1000000,
-        dexState.right.coin,
-        dexState.right.amount).send({ amount: dexState.left.amount });
-      props.openSnack();
-      resetDexCoins();
-      op.receipt().then(() => {
-        props.closeSnack();
-        loadDexTokens();
-        forceRetrieveTokenBalance(rcoin);
-        Tezos.tz
-        .getBalance(account)
-        .then((balance) => { setBalance(balance / 1000000) })
-        .catch((error) => console.log(JSON.stringify(error)));
-      })
+      ///////////////////////////////////////////////////////////////////////////
+      // FIX ME
+      // call 'approve' & tranfer entry points
+      ///////////////////////////////////////////////////////////////////////////
     } else {
-      const fa12 = await tezos.wallet.at(dexState.token[lcoin].addr);
-      const fa12params = fa12.methods.approve(dexContract,dexState.left.amount).toTransferParams();
-      fa12params.kind = OpKind.TRANSACTION;
-      const dexparams = dex.methods.exchange(
-        dexState.left.coin,
-        dexState.left.amount,
-        dexState.right.coin,
-        dexState.right.amount).toTransferParams();
-      dexparams.kind = OpKind.TRANSACTION;
-      const batch = await tezos.wallet.batch([fa12params, dexparams]);
-      const op = await batch.send();
-      props.openSnack();
-      resetDexCoins();
-      op.receipt().then(() => {
-        props.closeSnack();
-        loadDexTokens();
-        forceRetrieveTokenBalance(lcoin);
-        if (rcoin != 'XTZ') {
-          forceRetrieveTokenBalance(rcoin);
-        }
-        Tezos.tz
-        .getBalance(account)
-        .then((balance) => { setBalance(balance / 1000000) })
-        .catch((error) => console.log(JSON.stringify(error)));
-      })
+      ///////////////////////////////////////////////////////////////////////////
+      // FIX ME
+      // call 'exchange' entry point
+      ///////////////////////////////////////////////////////////////////////////
     }
   }
   return (

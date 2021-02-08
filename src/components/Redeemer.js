@@ -163,19 +163,10 @@ const Redeemer = (props) => {
       setRedeemerCoin(event.target.value);
   };
   async function handleRedeem() {
-    const dex = await tezos.wallet.at(dexContract);
-    const op = await dex.methods.removeLiquidity(coin,dexState.redeemer.amount).send();
-    props.openSnack();
-    resetRedeemer();
-    op.receipt().then(() => {
-        props.closeSnack();
-        loadDexTokens();
-        loadLiquidity();
-        Tezos.tz
-        .getBalance(account)
-        .then((balance) => { setBalance(balance / 1000000) })
-        .catch((error) => console.log(JSON.stringify(error)));
-    })
+    ///////////////////////////////////////////////////////////////////////////
+    // FIX ME
+    // call 'removeLiquidity' entry point
+    ///////////////////////////////////////////////////////////////////////////
   };
   const cities = Object.keys(dexState.token);
   return (

@@ -191,24 +191,10 @@ const Provider = (props) => {
   async function handleProvide() {
     const fa12 = await tezos.wallet.at(dexState.token[coin].addr);
     const dex = await tezos.wallet.at(dexContract);
-    const fa12params = fa12.methods.approve(dexContract,dexState.provider.amount).toTransferParams();
-    fa12params.kind = OpKind.TRANSACTION;
-    const dexparams = dex.methods.addLiquidity(coin,dexState.provider.amount).toTransferParams();
-    dexparams.kind = OpKind.TRANSACTION;
-    dexparams.amount = dexState.provider.xtzamount;
-    const batch = await tezos.wallet.batch([fa12params, dexparams]);
-    const op = await batch.send();
-    props.openSnack();
-    resetProvider();
-    op.receipt().then(() => {
-        props.closeSnack();
-        loadDexTokens();
-        loadLiquidity();
-        Tezos.tz
-        .getBalance(account)
-        .then((balance) => { setBalance(balance / 1000000) })
-        .catch((error) => console.log(JSON.stringify(error)));
-    })
+    ///////////////////////////////////////////////////////////////////////////
+    // FIX ME
+    // call 'approve' & 'addLiquidity' entry points
+    ///////////////////////////////////////////////////////////////////////////
   };
   return (
     <Paper style={{ marginTop: '8px', minWidth: '1000px' }}>
