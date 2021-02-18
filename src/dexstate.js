@@ -271,15 +271,25 @@ export function useDexState() {
       .then ( myStorage => {
         //When called on a map, the get method returns the value directly
         myStorage['ledger'].get(account).then(value => {
-          setDexState(state => {
-            var balances = state.balances;
-            console.log(`value: ${value.toString()}`);
-            balances[coin] = value.toString();
-            return {
-              ...state,
-              balances : balances,
-            }
-          });
+          if (value === undefined) {
+            setDexState(state => {
+              var balances = state.balances;
+              balances[coin] = '0';
+              return {
+                ...state,
+                balances : balances,
+              }
+            });
+          } else {
+            setDexState(state => {
+              var balances = state.balances;
+              balances[coin] = value.toString();
+              return {
+                ...state,
+                balances : balances,
+              }
+            });
+          }
         });
       })})
       .catch(error => console.log(`Error: ${JSON.stringify(error, null, 2)}`));

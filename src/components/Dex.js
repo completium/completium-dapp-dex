@@ -163,7 +163,7 @@ const RightEx = (props) => {
             <MenuItem value="">
               <em>None</em>
             </MenuItem>
-            { cities.filter(city => city !== dexState.left.coin).map(city =>
+            { cities.filter(city => dexState.left.coin !== '' && city !== dexState.left.coin).map(city =>
               <MenuItem value={city}><CoinItem name={city} show={true}/></MenuItem>
             )}
           </Select>
