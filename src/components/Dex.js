@@ -15,10 +15,10 @@ import Switch from '@material-ui/core/Switch';
 import CoinItem from './CoinItem';
 import VerticialDivider from './VerticalDivider';
 import { useTezos, useAccountPkh, useReady } from '../dapp';
-import { dexContract, network } from '../settings';
+import { dexContract, endpoint } from '../settings';
 import { OpKind, TezosToolkit } from '@taquito/taquito';
 
-const Tezos = new TezosToolkit('https://'+network+'-tezos.giganode.io');
+const Tezos = new TezosToolkit(endpoint);
 
 const useStyles = makeStyles((theme) => ({
   formControl: {

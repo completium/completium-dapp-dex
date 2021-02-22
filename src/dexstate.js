@@ -1,10 +1,10 @@
 import { useState } from 'react';
 import constate from 'constate';
 import { useAccountPkh, useReady } from './dapp';
-import { network, dexContract } from './settings';
+import { endpoint, dexContract } from './settings';
 import { TezosToolkit } from '@taquito/taquito';
 
-const Tezos = new TezosToolkit('https://'+network+'-tezos.giganode.io');
+const Tezos = new TezosToolkit(endpoint);
 
 export function useDexState() {
   const account = useAccountPkh();

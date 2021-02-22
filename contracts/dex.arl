@@ -17,15 +17,15 @@ asset token {
   totalqty : nat = 0;     /* total number of tokens  */
   totallqt : nat = 0;     /* total LTQ tokens        */
 } initialized by {
-  { "XPA"; @KT1MePDQK3VQooqSEwN3sN1WqyMiiGBKGkNX; "Paris"         ; concat(urlprefix,"paris_black.svg")  ; 0; 0; 0 };
-  { "XLD"; @KT1H8JUiFbvEMycCuG5sZfCGHkN7vgfLAs3n; "London"        ; concat(urlprefix,"london_black.svg") ; 0; 0; 0 };
-  { "XNY"; @KT1VZSKpWaQf28GudoZae85nXFMZTS6hw1MH; "New York City" ; concat(urlprefix,"nyc_black.svg")    ; 0; 0; 0 };
-  { "XRO"; @KT1LpxvCD97T85RWkjGMiFgFxiYsmEHE23Sf; "Rome"          ; concat(urlprefix,"rome_black.svg")   ; 0; 0; 0 };
-  { "XTK"; @KT1SVB1EuoD73CWNc6wp3vQRaeiho2GjYa7Q; "Tokyo"         ; concat(urlprefix,"tokyo_black.svg")  ; 0; 0; 0 };
-  { "XAT"; @KT1PocAFBwSNK6UHdDKH97eFCPjxDgSJUUsR; "Athens"        ; concat(urlprefix,"athenes_black.svg"); 0; 0; 0 };
-  { "XMO"; @KT1AKC1T8jGTACDJxyN8WvNZWJyZPYtFx4Vg; "Moscow"        ; concat(urlprefix,"moscow_black.svg") ; 0; 0; 0 };
-  { "XSD"; @KT1E87BM8kauAhVzAFh1K3ob4qY1Yq9vFKen; "Sydney"        ; concat(urlprefix,"sydney_black.svg") ; 0; 0; 0 };
-  { "XRI"; @KT1NkvyqZyfrCFXnxscnMnQ8atxjir1P3qNQ; "Rio de Janeiro"; concat(urlprefix,"rio_black.svg")    ; 0; 0; 0 }
+  { "XPA"; @KT1WJ8Qnu3qdQfVh6sYtPwqzrHiP2MRPVoK8; "Paris"         ; concat(urlprefix,"paris_black.svg")  ; 0; 0; 0 };
+  { "XLD"; @KT1Ck8yJRUA8XxdeNRvuaMMe1NTuj8ScgMNv; "London"        ; concat(urlprefix,"london_black.svg") ; 0; 0; 0 };
+  { "XNY"; @KT1SrJZFvStCALM7vzB6ZKEYGhZuWh9T7Muw; "New York City" ; concat(urlprefix,"nyc_black.svg")    ; 0; 0; 0 };
+  { "XRO"; @KT1VLEyRXk2nht6zesvpkQpohE7svYV5phgP; "Rome"          ; concat(urlprefix,"rome_black.svg")   ; 0; 0; 0 };
+  { "XTK"; @KT1Xpk4uZ89M6idG9Vq1xmPbtELbjrWEn9a1; "Tokyo"         ; concat(urlprefix,"tokyo_black.svg")  ; 0; 0; 0 };
+  { "XAT"; @KT1CwGtJJ9nKkmE9Qx9hxutRJpYAvBqdJm4E; "Athens"        ; concat(urlprefix,"athenes_black.svg"); 0; 0; 0 };
+  { "XMO"; @KT1D2AJgcBy3CJixRhwiQFF2phU3nWzdzP8i; "Moscow"        ; concat(urlprefix,"moscow_black.svg") ; 0; 0; 0 };
+  { "XSD"; @KT1UJFExW16wey6D2QRhuiBq7cANMcnykQFD; "Sydney"        ; concat(urlprefix,"sydney_black.svg") ; 0; 0; 0 };
+  { "XRI"; @KT1JV5GwAiCcJJzR5K6tBj6BEkYxFhwYPTyL; "Rio de Janeiro"; concat(urlprefix,"rio_black.svg")    ; 0; 0; 0 }
 }
 
 asset liquidity identified by tokenid owner {
@@ -64,7 +64,7 @@ entry exchange(tA : string, aA: nat, tB : string, aB : nat) {
       if (abs(expectedB - aB) > epsilon) then fail(("INVALID_B_AMOUNT",expectedB));
       var xtzin : nat = transferred;
       if aA <> xtzin then fail(("INVALID_A_AMOUNT",xtzin));
-      match_option entrypoint<(address * address * nat)>("%transfer",token[tB].addr) with
+      match entrypoint<(address * address * nat)>("%transfer",token[tB].addr) with
       | some(transferB) ->
         transfer 0tz to entry transferB((selfaddress, caller, aB))
       | none -> fail("INVALID_B_ENTRY")
@@ -75,7 +75,7 @@ entry exchange(tA : string, aA: nat, tB : string, aB : nat) {
       var qB = token[tA].poolvalue;
       var expectedB = compute_exchanged(aA,qA,qB);
       if (abs(expectedB - aB) > epsilon) then fail(("INVALID_B_AMOUNT",expectedB));
-      match_option entrypoint<(address * address * nat)>("%transfer",token[tA].addr) with
+      match entrypoint<(address * address * nat)>("%transfer",token[tA].addr) with
       | some(transferA) ->
         transfer 0tz to entry transferA((caller, selfaddress, aA))
       | none -> fail("INVALID_A_ENTRY")
@@ -90,12 +90,12 @@ entry exchange(tA : string, aA: nat, tB : string, aB : nat) {
       var qB  = token[tB].totalqty;
       var expectedB = compute_exchanged(aT,qTB,qB);
       if (abs(expectedB - aB) > epsilon) then fail(("INVALID_B_AMOUNT",expectedB));
-      match_option entrypoint<(address * address * nat)>("%transfer",token[tA].addr) with
+      match entrypoint<(address * address * nat)>("%transfer",token[tA].addr) with
       | some(transferA) ->
         transfer 0tz to entry transferA((caller, selfaddress, aA))
       | none -> fail("INVALID_A_ENTRY")
       end;
-      match_option entrypoint<(address * address * nat)>("%transfer",token[tB].addr) with
+      match entrypoint<(address * address * nat)>("%transfer",token[tB].addr) with
       | some(transferA) ->
         transfer 0tz to entry transferA((selfaddress, caller, aB))
       | none -> fail("INVALID_B_ENTRY")
@@ -120,7 +120,7 @@ entry exchange(tA : string, aA: nat, tB : string, aB : nat) {
 */
 entry addLiquidity(tL : string, qL : nat) {
   /* TODO : check transferred value */
-  match_option entrypoint<(address * address * nat)>("%transfer",token[tL].addr) with
+  match entrypoint<(address * address * nat)>("%transfer",token[tL].addr) with
    | some(transfer_src) ->
      transfer 0tz to entry transfer_src((caller, selfaddress, qL))
    | none -> fail("INVALID_DST_ENTRY")
@@ -147,7 +147,7 @@ entry removeLiquidity(qL : nat, tA : string) {
     var lqtratio = qL / token[tA].totallqt;
     var xtzout = abs(floor(lqtratio * token[tA].poolvalue));
     transfer (xtzout * 1utz) to caller;
-    match_option entrypoint<(address * address * nat)>("%transfer",token[tA].addr) with
+    match entrypoint<(address * address * nat)>("%transfer",token[tA].addr) with
     | some(transfer_src) ->
       var qty = abs(floor(lqtratio * token[tA].totalqty));
       transfer 0tz to entry transfer_src((selfaddress, caller, qty));
