@@ -18,10 +18,10 @@ import InputAdornment from '@material-ui/core/InputAdornment';
 import { useTheme } from '@material-ui/core/styles';
 import PlusDivider from './PlusDivider';
 import { useTezos, useAccountPkh, useReady } from '../dapp.js';
-import { dexContract, network } from '../settings';
+import { dexContract, endpoint } from '../settings';
 import { OpKind, TezosToolkit } from '@taquito/taquito';
 
-const Tezos = new TezosToolkit('https://'+network+'-tezos.giganode.io');
+const Tezos = new TezosToolkit(endpoint);
 
 const useStyles = makeStyles((theme) => ({
   formControl: {

@@ -2,7 +2,7 @@ import './App.css';
 import React, { useState } from 'react';
 import { DAppProvider, useConnect, useAccountPkh, useReady } from './dapp.js';
 import { DexProvider, useDexStateContext } from './dexstate';
-import { appName, appTitle, network } from './settings';
+import { appName, appTitle, network, endpoint } from './settings';
 import { createMuiTheme, ThemeProvider } from '@material-ui/core/styles';
 import HeaderBar from './components/HeaderBar';
 import CssBaseline from '@material-ui/core/CssBaseline';
@@ -15,7 +15,7 @@ import Provider from './components/Provider';
 import Redeemer from './components/Redeemer';
 import { TezosToolkit } from '@taquito/taquito';
 
-const Tezos = new TezosToolkit('https://'+network+'-tezos.giganode.io');
+const Tezos = new TezosToolkit(endpoint);
 
 function App() {
   return (

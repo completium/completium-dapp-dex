@@ -1,10 +1,12 @@
 export const appTitle = "Exchange city coins!"
 
-export const network = "delphinet"
+export const network  = "edo2net"
+export const endpoint = 'https://edonet-tezos.giganode.io'
+export const bcdUrl   = "https://better-call.dev/edo2net"
 
 export const appName = "CityDexCorp."
 
-export const dexContract = 'KT1J48AfBi8NwNaFQM1AXTvordRgSRJxK313'
+export const dexContract = 'KT1MuiU5FFdz3wNXNzxuBJmCN7n73EZdWENA'
 
 export const cities = [ 'tezos', 'paris', 'london', 'moscow', 'nyc', 'tokyo', 'sydney', 'athenes', 'rio', 'rome' ];
 
