@@ -1,22 +1,22 @@
 {
   "files": {
     "main.css": "/completium-dapp-dex/static/css/main.9c72e34c.chunk.css",
-    "main.js": "/completium-dapp-dex/static/js/main.a707724e.chunk.js",
-    "main.js.map": "/completium-dapp-dex/static/js/main.a707724e.chunk.js.map",
+    "main.js": "/completium-dapp-dex/static/js/main.fdc03685.chunk.js",
+    "main.js.map": "/completium-dapp-dex/static/js/main.fdc03685.chunk.js.map",
     "runtime-main.js": "/completium-dapp-dex/static/js/runtime-main.1bea97b2.js",
     "runtime-main.js.map": "/completium-dapp-dex/static/js/runtime-main.1bea97b2.js.map",
-    "static/js/2.e355e69a.chunk.js": "/completium-dapp-dex/static/js/2.e355e69a.chunk.js",
-    "static/js/2.e355e69a.chunk.js.map": "/completium-dapp-dex/static/js/2.e355e69a.chunk.js.map",
+    "static/js/2.d746eb19.chunk.js": "/completium-dapp-dex/static/js/2.d746eb19.chunk.js",
+    "static/js/2.d746eb19.chunk.js.map": "/completium-dapp-dex/static/js/2.d746eb19.chunk.js.map",
     "static/js/3.8a732526.chunk.js": "/completium-dapp-dex/static/js/3.8a732526.chunk.js",
     "static/js/3.8a732526.chunk.js.map": "/completium-dapp-dex/static/js/3.8a732526.chunk.js.map",
     "index.html": "/completium-dapp-dex/index.html",
     "static/css/main.9c72e34c.chunk.css.map": "/completium-dapp-dex/static/css/main.9c72e34c.chunk.css.map",
-    "static/js/2.e355e69a.chunk.js.LICENSE.txt": "/completium-dapp-dex/static/js/2.e355e69a.chunk.js.LICENSE.txt"
+    "static/js/2.d746eb19.chunk.js.LICENSE.txt": "/completium-dapp-dex/static/js/2.d746eb19.chunk.js.LICENSE.txt"
   },
   "entrypoints": [
     "static/js/runtime-main.1bea97b2.js",
-    "static/js/2.e355e69a.chunk.js",
+    "static/js/2.d746eb19.chunk.js",
     "static/css/main.9c72e34c.chunk.css",
-    "static/js/main.a707724e.chunk.js"
+    "static/js/main.fdc03685.chunk.js"
   ]
 }
