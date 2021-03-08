@@ -6,7 +6,7 @@ export const bcdUrl   = "https://better-call.dev/edo2net"
 
 export const appName = "CityDexCorp."
 
-export const dexContract = 'KT1MuiU5FFdz3wNXNzxuBJmCN7n73EZdWENA'
+export const dexContract = 'KT1MNgjnJg7c2WmnCwCAkhmcAGbrrPMoxcSa'
 
 export const cities = [ 'tezos', 'paris', 'london', 'moscow', 'nyc', 'tokyo', 'sydney', 'athenes', 'rio', 'rome' ];
 
