@@ -1,4 +1,14 @@
-archetype dex
+archetype dex(
+  addr_xpa : address, // @KT1WJ8Qnu3qdQfVh6sYtPwqzrHiP2MRPVoK8
+  addr_xld : address, // @KT1Ck8yJRUA8XxdeNRvuaMMe1NTuj8ScgMNv
+  addr_xny : address, // @KT1SrJZFvStCALM7vzB6ZKEYGhZuWh9T7Muw
+  addr_xro : address, // @KT1VLEyRXk2nht6zesvpkQpohE7svYV5phgP
+  addr_xtk : address, // @KT1Xpk4uZ89M6idG9Vq1xmPbtELbjrWEn9a1
+  addr_xat : address, // @KT1CwGtJJ9nKkmE9Qx9hxutRJpYAvBqdJm4E
+  addr_xmo : address, // @KT1D2AJgcBy3CJixRhwiQFF2phU3nWzdzP8i
+  addr_xsd : address, // @KT1UJFExW16wey6D2QRhuiBq7cANMcnykQFD
+  addr_xri : address  // @KT1JV5GwAiCcJJzR5K6tBj6BEkYxFhwYPTyL
+)
 
 constant gamma         : rational = 1 - 0.003
 constant epsilon       : nat = 1
@@ -17,15 +27,15 @@ asset token {
   totalqty : nat = 0;     /* total number of tokens  */
   totallqt : nat = 0;     /* total LTQ tokens        */
 } initialized by {
-  { "XPA"; @KT1WJ8Qnu3qdQfVh6sYtPwqzrHiP2MRPVoK8; "Paris"         ; concat(urlprefix,"paris_black.svg")  ; 0; 0; 0 };
-  { "XLD"; @KT1Ck8yJRUA8XxdeNRvuaMMe1NTuj8ScgMNv; "London"        ; concat(urlprefix,"london_black.svg") ; 0; 0; 0 };
-  { "XNY"; @KT1SrJZFvStCALM7vzB6ZKEYGhZuWh9T7Muw; "New York City" ; concat(urlprefix,"nyc_black.svg")    ; 0; 0; 0 };
-  { "XRO"; @KT1VLEyRXk2nht6zesvpkQpohE7svYV5phgP; "Rome"          ; concat(urlprefix,"rome_black.svg")   ; 0; 0; 0 };
-  { "XTK"; @KT1Xpk4uZ89M6idG9Vq1xmPbtELbjrWEn9a1; "Tokyo"         ; concat(urlprefix,"tokyo_black.svg")  ; 0; 0; 0 };
-  { "XAT"; @KT1CwGtJJ9nKkmE9Qx9hxutRJpYAvBqdJm4E; "Athens"        ; concat(urlprefix,"athenes_black.svg"); 0; 0; 0 };
-  { "XMO"; @KT1D2AJgcBy3CJixRhwiQFF2phU3nWzdzP8i; "Moscow"        ; concat(urlprefix,"moscow_black.svg") ; 0; 0; 0 };
-  { "XSD"; @KT1UJFExW16wey6D2QRhuiBq7cANMcnykQFD; "Sydney"        ; concat(urlprefix,"sydney_black.svg") ; 0; 0; 0 };
-  { "XRI"; @KT1JV5GwAiCcJJzR5K6tBj6BEkYxFhwYPTyL; "Rio de Janeiro"; concat(urlprefix,"rio_black.svg")    ; 0; 0; 0 }
+  { "XPA"; addr_xpa; "Paris"         ; concat(urlprefix, "paris_black.svg")  ; 0; 0; 0 };
+  { "XLD"; addr_xld; "London"        ; concat(urlprefix, "london_black.svg") ; 0; 0; 0 };
+  { "XNY"; addr_xny; "New York City" ; concat(urlprefix, "nyc_black.svg")    ; 0; 0; 0 };
+  { "XRO"; addr_xro; "Rome"          ; concat(urlprefix, "rome_black.svg")   ; 0; 0; 0 };
+  { "XTK"; addr_xtk; "Tokyo"         ; concat(urlprefix, "tokyo_black.svg")  ; 0; 0; 0 };
+  { "XAT"; addr_xat; "Athens"        ; concat(urlprefix, "athenes_black.svg"); 0; 0; 0 };
+  { "XMO"; addr_xmo; "Moscow"        ; concat(urlprefix, "moscow_black.svg") ; 0; 0; 0 };
+  { "XSD"; addr_xsd; "Sydney"        ; concat(urlprefix, "sydney_black.svg") ; 0; 0; 0 };
+  { "XRI"; addr_xri; "Rio de Janeiro"; concat(urlprefix, "rio_black.svg")    ; 0; 0; 0 }
 }
 
 asset liquidity identified by tokenid owner {
