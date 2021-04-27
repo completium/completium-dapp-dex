@@ -4,8 +4,8 @@ COINS="XPA XLD XNY XRO XTK XAT XMO XSD XRI"
 
 addrs=()
 for coin in $COINS; do
-  completium-cli deploy coin_fa12.arl --named $coin --force > /dev/null
-  addr=`completium-cli show contract $coin | sed 's/ *$//g'`
+  completium-cli deploy coin_fa12.arl --init '@tz1Lc2qBKEWCBeDU8npG6zCeCqpmaegRi6Jg' --named $coin --force > /dev/null
+  addr=`completium-cli show address $coin`
   addrs+=(@$addr)
   echo $coin "deployed: " $addr
 done

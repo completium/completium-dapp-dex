@@ -1,12 +1,12 @@
 export const appTitle = "Exchange city coins!"
 
-export const network  = "edo2net"
-export const endpoint = 'https://edonet.smartpy.io'
-export const bcdUrl   = "https://better-call.dev/edo2net"
+export const network  = "florencenet"
+export const endpoint = 'https://florencenet.smartpy.io'
+export const bcdUrl   = "https://better-call.dev/florencenet"
 
 export const appName = "CityDexCorp."
 
-export const dexContract = 'KT1MNgjnJg7c2WmnCwCAkhmcAGbrrPMoxcSa'
+export const dexContract = 'KT1G2byNy3hchRhs8jgj7GdpbwPchJ6MQw3h'
 
 export const cities = [ 'tezos', 'paris', 'london', 'moscow', 'nyc', 'tokyo', 'sydney', 'athenes', 'rio', 'rome' ];
 
