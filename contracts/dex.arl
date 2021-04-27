@@ -1,13 +1,13 @@
 archetype dex(
-  addr_xpa : address, // @KT1WJ8Qnu3qdQfVh6sYtPwqzrHiP2MRPVoK8
-  addr_xld : address, // @KT1Ck8yJRUA8XxdeNRvuaMMe1NTuj8ScgMNv
-  addr_xny : address, // @KT1SrJZFvStCALM7vzB6ZKEYGhZuWh9T7Muw
-  addr_xro : address, // @KT1VLEyRXk2nht6zesvpkQpohE7svYV5phgP
-  addr_xtk : address, // @KT1Xpk4uZ89M6idG9Vq1xmPbtELbjrWEn9a1
-  addr_xat : address, // @KT1CwGtJJ9nKkmE9Qx9hxutRJpYAvBqdJm4E
-  addr_xmo : address, // @KT1D2AJgcBy3CJixRhwiQFF2phU3nWzdzP8i
-  addr_xsd : address, // @KT1UJFExW16wey6D2QRhuiBq7cANMcnykQFD
-  addr_xri : address  // @KT1JV5GwAiCcJJzR5K6tBj6BEkYxFhwYPTyL
+  addr_xpa : address, // @KT1ETEdeue1hZqtBRJuKeNHypmazUgbYFJvX
+  addr_xld : address, // @KT1G9muyCy6gHJ1r3b3KcMoAMdV8ZRHu7c9v
+  addr_xny : address, // @KT1GDPkxeV81nLrpVY9En9w2qj2qXtzrjYHm
+  addr_xro : address, // @KT1PrGWKAZSpXs53dQMUZNcKknELy83Co7As
+  addr_xtk : address, // @KT1UUCmQRzucR9C3SZnRLZfDngvxNrwi2kSL
+  addr_xat : address, // @KT1BGKuEkA6SVMJkiW2WBZUDNjb55ye1eQ4x
+  addr_xmo : address, // @KT1SQPeB45dfe4YGQwrKQTWp6moRxGaNa3QA
+  addr_xsd : address, // @KT1AJnBDYahakQszwx6cmNQxbtdk7Q7yRced
+  addr_xri : address  // @KT1RHz29jFUettFSjbdxNnTsU97uunyceHd1
 )
 
 constant gamma         : rational = 1 - 0.003
